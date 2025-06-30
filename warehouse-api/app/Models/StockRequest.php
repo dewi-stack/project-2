@@ -14,6 +14,7 @@ class StockRequest extends Model
         'user_id',
         'type',
         'quantity',
+        'unit',
         'status',
         'description',
     ];

@@ -27,7 +27,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/stock-requests'),
+      Uri.parse('http://192.168.1.3:8000/api/stock-requests'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -53,7 +53,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.6:8000/api/stock-requests/$requestId/approve'),
+      Uri.parse('http://192.168.1.3:8000/api/stock-requests/$requestId/approve'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -123,6 +123,19 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
                                 const Icon(Icons.inventory_2, size: 18, color: Colors.grey),
                                 const SizedBox(width: 6),
                                 Text('Jumlah: ${request['quantity']} unit'),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.description_outlined, size: 18, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Keterangan: ${request['description'] ?? '-'}',
+                                    style: const TextStyle(color: Colors.black87),
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),

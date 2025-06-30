@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.1.6:8000/api"; // Sesuaikan IP backend kamu
+  static const String baseUrl = "http://192.168.1.3:8000/api";
 
   static Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
@@ -64,9 +64,6 @@ class ApiService {
 
   static Future<List<dynamic>> fetchKategori() async {
     final response = await get("categories");
-
-    print("Kategori status: ${response.statusCode}");
-
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
@@ -74,12 +71,41 @@ class ApiService {
     }
   }
 
+  static Future<List<dynamic>> fetchSubKategori(int categoryId) async {
+    final response = await get("sub-categories?category_id=$categoryId");
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Gagal mengambil data sub kategori");
+    }
+  }
+
+  static Future<List<dynamic>> searchItems(String keyword) async {
+    final token = await getToken(); // Ambil token dari SharedPreferences
+
+    final response = await http.get(
+      Uri.parse('http://192.168.1.3:8000/api/items/search?q=$keyword'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Gagal mencari item");
+    }
+  }
+
+
+
   static Future<bool> simpanBarangMasuk(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/items'),
+      Uri.parse('$baseUrl/items'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -96,9 +122,8 @@ class ApiService {
     }
   }
 
-  /// Cek apakah SKU sudah ada
   static Future<Map<String, dynamic>?> fetchItemBySKU(String sku) async {
-    final response = await get("items/sku/$sku");  // Pastikan endpoint backend-mu seperti ini
+    final response = await get("items/sku/$sku");
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data;
@@ -109,14 +134,10 @@ class ApiService {
     }
   }
 
-  /// Tambah stok jika SKU sudah ada
   static Future<bool> tambahStokItem(int itemId, int tambahanStok) async {
     final response = await put("items/$itemId/add-stock", {
       'quantity': tambahanStok,
     });
-
-    print("Tambah Stok Status: ${response.statusCode}");
-    print("Tambah Stok Body: ${response.body}");
 
     return response.statusCode == 200;
   }
@@ -146,9 +167,11 @@ class ApiService {
     return [];
   }
 
-  static Future<bool> ajukanStockRequest({
+ static Future<bool> ajukanStockRequest({
     required int itemId,
     required int quantity,
+    required String description,
+    required String unit,
     String type = 'increase',
   }) async {
     try {
@@ -164,18 +187,54 @@ class ApiService {
         body: jsonEncode({
           'item_id': itemId,
           'quantity': quantity,
-          'type': type, // default 'increase'
+          'type': type,
+          'description': description,
+          'unit': unit, // ✅ dikirim ke backend
         }),
       );
 
-      print('Ajukan StockRequest Status: ${response.statusCode}');
-      print('Ajukan StockRequest Body: ${response.body}');
-
       return response.statusCode == 201;
     } catch (e) {
-      print('Error saat mengajukan stock request: $e');
       return false;
     }
   }
 
+  static Future<bool> simpanMutasiBarangBaru({
+    required String sku,
+    required String lokasi,
+    required int jumlah,
+    required String deskripsi,
+  }) async {
+    final response = await post("items/mutasi-baru", {
+      'sku': sku,
+      'location': lokasi,
+      'quantity': jumlah,
+      'description': deskripsi,
+    });
+
+    return response.statusCode == 201;
+  }
+
+  
+  static Future<bool> sendDeleteStockRequest(int itemId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.post(
+      Uri.parse('http://192.168.1.3:8000/api/stock-requests'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'item_id': itemId,
+        'quantity': 1,
+        'type': 'delete',
+        'description': 'Permintaan penghapusan oleh Submitter',
+      }),
+    );
+
+    return response.statusCode == 201;
+  }
 }

@@ -3,96 +3,56 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class CategoryPage extends StatefulWidget {
+class CategoryApproverPage extends StatefulWidget {
   @override
-  State<CategoryPage> createState() => _CategoryPageState();
+  State<CategoryApproverPage> createState() => _CategoryApproverPageState();
 }
 
-class _CategoryPageState extends State<CategoryPage> {
-  List categories = [];
+class _CategoryApproverPageState extends State<CategoryApproverPage> {
+  List subcategoryRequests = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchCategories();
+    fetchSubcategoryRequests();
   }
 
-  Future<void> fetchCategories() async {
+  Future<void> fetchSubcategoryRequests() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
+      Uri.parse('http://192.168.1.3:8000/api/subcategory-requests'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 200) {
       setState(() {
-        categories = json.decode(response.body);
+        subcategoryRequests = json.decode(response.body);
+        isLoading = false;
       });
     } else {
-      print('Failed to load categories');
-    }
-  }
-
-  Future<void> tambahKategori(String namaKategori) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'name': namaKategori}),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
+      setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori berhasil ditambahkan')),
-      );
-      fetchCategories();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menambahkan kategori')),
+        const SnackBar(content: Text('Gagal mengambil data pengajuan subkategori')),
       );
     }
   }
 
-  Future<void> editKategori(int id, String newName) async {
+  Future<void> updateRequestStatus(int requestId, String status) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
+
+    // Sesuaikan URL berdasarkan status
+    final url = status == 'approved'
+        ? 'http://192.168.1.3:8000/api/subcategory-requests/$requestId/approve'
+        : 'http://192.168.1.3:8000/api/subcategory-requests/$requestId/reject';
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.6:8000/api/categories/$id'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'name': newName}),
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori berhasil diperbarui')),
-      );
-      fetchCategories();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal memperbarui kategori')),
-      );
-    }
-  }
-
-  Future<void> hapusKategori(int id) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    final response = await http.delete(
-      Uri.parse('http://192.168.1.6:8000/api/categories/$id'),
+      Uri.parse(url),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -101,169 +61,75 @@ class _CategoryPageState extends State<CategoryPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori berhasil dihapus')),
+        SnackBar(content: Text('Berhasil ${status == 'approved' ? 'menyetujui' : 'menolak'} pengajuan')),
       );
-      fetchCategories();
+      fetchSubcategoryRequests();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menghapus kategori')),
+        const SnackBar(content: Text('Gagal memperbarui status pengajuan')),
       );
     }
-  }
-
-  void showAddCategoryDialog() {
-    TextEditingController _controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text("Tambah Kategori Baru", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: TextField(
-            controller: _controller,
-            decoration: InputDecoration(labelText: 'Nama Kategori'),
-          ),
-          actions: [
-            TextButton(
-              child: Text("Batal", style: TextStyle(color: Colors.deepPurple)),
-              onPressed: () => Navigator.pop(context),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.indigoAccent),
-              child: Text("Simpan"),
-              onPressed: () {
-                String namaKategori = _controller.text.trim();
-                if (namaKategori.isNotEmpty) {
-                  Navigator.pop(context);
-                  tambahKategori(namaKategori);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Nama kategori tidak boleh kosong')),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void showEditDialog(int id, String currentName) {
-    TextEditingController controller = TextEditingController(text: currentName);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text("Edit Kategori", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: 'Nama Kategori'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Batal", style: TextStyle(color: Colors.deepPurple)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final newName = controller.text.trim();
-                if (newName.isNotEmpty) {
-                  Navigator.of(context).pop();
-                  editKategori(id, newName);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Nama kategori tidak boleh kosong')),
-                  );
-                }
-              },
-              child: const Text("Simpan"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void showDeleteDialog(int id, String kategoriName) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('Hapus Kategori', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Text('Apakah Anda yakin ingin menghapus kategori "$kategoriName"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Batal', style: TextStyle(color: Colors.deepPurple)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                hapusKategori(id);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text('Hapus'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: categories.isEmpty
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                var kategori = categories[index];
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 3,
-                    child: ListTile(
-                      leading: Icon(Icons.category, color: Colors.blue),
-                      title: Text(kategori['name'] ?? '-'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit, color: Colors.orange),
-                            onPressed: () {
-                              showEditDialog(kategori['id'], kategori['name']);
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDeleteDialog(kategori['id'], kategori['name']);
-                            },
-                          ),
-                        ],
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : subcategoryRequests.isEmpty
+              ? const Center(child: Text('Tidak ada pengajuan subkategori.'))
+              : ListView.builder(
+                  itemCount: subcategoryRequests.length,
+                  itemBuilder: (context, index) {
+                    final req = subcategoryRequests[index];
+                    final categoryName = req['category']?['name'] ?? '-';
+                    final subcategoryName = req['name'] ?? '-';
+                    final status = req['status'] ?? '-';
+
+                    return Card(
+                      margin: const EdgeInsets.all(10),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Kategori: $categoryName', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text('Nama Subkategori: $subcategoryName'),
+                            const SizedBox(height: 8),
+                            Text('Status: $status',
+                                style: TextStyle(
+                                  color: status == 'pending'
+                                      ? Colors.orange
+                                      : status == 'approved'
+                                          ? Colors.green
+                                          : Colors.red,
+                                )),
+                            const SizedBox(height: 8),
+                            if (status == 'pending')
+                              Row(
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: () => updateRequestStatus(req['id'], 'approved'),
+                                    icon: const Icon(Icons.check),
+                                    label: const Text('Setujui'),
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  ElevatedButton.icon(
+                                    onPressed: () => updateRequestStatus(req['id'], 'rejected'),
+                                    icon: const Icon(Icons.close),
+                                    label: const Text('Tolak'),
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: showAddCategoryDialog,
-        child: Icon(Icons.add),
-        backgroundColor: Colors.indigo,
-      ),
+                    );
+                  },
+                ),
     );
   }
 }

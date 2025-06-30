@@ -10,13 +10,8 @@ class Item extends Model
     use HasFactory;
 
     protected $fillable = [
-        'sku',
-        'name',
-        'category_id',
-        'stock',
-        'location',
-        'description',
-        'user_id'
+        'sku', 'name', 'category_id', 'sub_category_id', 'location',
+        'stock', 'unit', 'description', 'user_id'
     ];
 
     public function category()
@@ -29,16 +24,15 @@ class Item extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function keluar()
-    {
-        return $this->hasMany(ItemOut::class);
-    }
-
     public function stockRequests()
     {
         return $this->hasMany(StockRequest::class);
     }
 
+    public function subCategory()
+    {
+        return $this->belongsTo(SubCategory::class);
+    }
 
 }
 

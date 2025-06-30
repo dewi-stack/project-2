@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
         if (role == 'Approver') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const DashboardApproverPage()),
+            MaterialPageRoute(builder: (_) => DashboardApproverPage(role: role)),
           );
         } else {
           Navigator.pushReplacement(

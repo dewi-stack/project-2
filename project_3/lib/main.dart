@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Warehouse Management',
+      title: 'SAJI',
       debugShowCheckedModeBanner: false,
       locale: const Locale('id', 'ID'),
       supportedLocales: const [Locale('id', 'ID')],

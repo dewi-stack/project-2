@@ -26,30 +26,37 @@ class _RiwayatMasukPageState extends State<RiwayatMasukPage> {
     final token = prefs.getString('token');
 
     if (token == null) {
+      if (!mounted) return;
       setState(() => isLoading = false);
       return;
     }
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/my-stock-requests'),
+        Uri.parse('http://192.168.1.3:8000/api/my-stock-requests'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        final filtered = data.where((item) =>
+          item['type'] == 'increase' || item['type'] == 'initial'
+        ).toList();
+
+        if (!mounted) return;
         setState(() {
-          // Ambil hanya request stok masuk
-          items = data.where((item) =>
-            item['type'] == 'increase' || item['type'] == 'initial'
-          ).toList();
+          items = filtered;
           isLoading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() => isLoading = false);
       }
     } catch (e) {
       print('Error: $e');
+      if (!mounted) return;
       setState(() => isLoading = false);
     }
   }
@@ -60,7 +67,7 @@ class _RiwayatMasukPageState extends State<RiwayatMasukPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : items.isEmpty
-              ? const Center(child: Text("Tidak ada riwayat stok masuk."))
+              ? const Center(child: Text("Belum ada pengajuan penambahan stok barang."))
               : ListView.builder(
                   itemCount: items.length,
                   itemBuilder: (context, index) {
@@ -71,11 +78,7 @@ class _RiwayatMasukPageState extends State<RiwayatMasukPage> {
                     final quantity = item['quantity'] ?? 0;
                     final status = item['status'];
                     final createdAt = item['created_at']?.toString().substring(0, 10) ?? '-';
-                    final type = item['type'];
-
-                    final keterangan = type == 'initial'
-                        ? '📦 Barang baru ditambahkan'
-                        : '➕ Stok baru ditambahkan';
+                    final keterangan = item['description'] ?? '-';
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -132,8 +135,9 @@ class _RiwayatMasukPageState extends State<RiwayatMasukPage> {
             MaterialPageRoute(builder: (context) => const ScanBarcodePage()),
           );
 
-          if (result != null && result is String) {
-            print("SKU dari Scan: $result");
+          // ⬇️ Refresh data jika ada pengajuan baru
+          if (result == true) {
+            await fetchStockRequests(); // reload data riwayat
           }
         },
       ),

@@ -27,7 +27,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/stock-requests'),
+      Uri.parse('http://192.168.1.3:8000/api/stock-requests'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -50,7 +50,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.6:8000/api/stock-requests/$id/approve'),
+      Uri.parse('http://192.168.1.3:8000/api/stock-requests/$id/approve'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : requests.isEmpty
-              ? const Center(child: Text('Tidak ada permintaan pengurangan stok yang menunggu persetujuan.'))
+              ? const Center(child: Text('Tidak ada permintaan keluar yang menunggu persetujuan.'))
               : ListView.builder(
                   padding: const EdgeInsets.all(12),
                   itemCount: requests.length,
@@ -120,6 +120,19 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
                             const SizedBox(height: 6),
                             Row(
                               children: [
+                                const Icon(Icons.description_outlined, size: 18, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Keterangan: ${req['description'] ?? '-'}',
+                                    style: const TextStyle(color: Colors.black87),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
                                 const Icon(Icons.location_on, size: 18, color: Colors.grey),
                                 const SizedBox(width: 6),
                                 Text("Lokasi: ${item['location']}"),
@@ -153,7 +166,16 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 ElevatedButton.icon(
-                                  onPressed: () => handleApproval(req['id'], 'approved'),
+                                  onPressed: () {
+                                    final currentStock = item['stock'] ?? 0;
+                                    if (currentStock <= 0) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Stok kosong. Tidak bisa dikurangi.')),
+                                      );
+                                      return;
+                                    }
+                                    handleApproval(req['id'], 'approved');
+                                  },
                                   icon: const Icon(Icons.check),
                                   label: const Text('Approve'),
                                   style: ElevatedButton.styleFrom(
