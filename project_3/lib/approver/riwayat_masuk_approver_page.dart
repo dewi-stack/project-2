@@ -22,7 +22,9 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
   }
 
   Future<void> fetchPendingStockRequests() async {
+    if (!mounted) return;
     setState(() => isLoading = true);
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
@@ -30,6 +32,8 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
       Uri.parse('http://192.168.1.3:8000/api/stock-requests'),
       headers: {'Authorization': 'Bearer $token'},
     );
+
+    if (!mounted) return;
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -42,9 +46,11 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
       });
     } else {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal memuat data')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat data')),
+        );
+      }
     }
   }
 
@@ -57,20 +63,26 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
       },
-      body: jsonEncode({'status': action}), // 'approved' or 'rejected'
+      body: jsonEncode({'status': action}),
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 200) {
-      fetchPendingStockRequests();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permintaan berhasil ${action == 'approved' ? 'disetujui' : 'ditolak'}')),
-      );
+      await fetchPendingStockRequests();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Permintaan berhasil ${action == 'approved' ? 'disetujui' : 'ditolak'}')),
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memproses permintaan: ${response.body}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memproses permintaan: ${response.body}')),
+        );
+      }
     }
   }
 
@@ -164,7 +176,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
                                   style: const TextStyle(
                                     fontStyle: FontStyle.italic,
                                     color: Colors.deepPurple,
-                                    ),
+                                  ),
                                 ),
                               ],
                             ),

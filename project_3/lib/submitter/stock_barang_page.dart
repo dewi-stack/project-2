@@ -253,7 +253,7 @@ class StokBarangPage extends StatelessWidget {
     } else if (status == 'rejected') {
       return type == 'delete'
           ? "❌ Penghapusan Ditolak"
-          : "❌ Mutasi Ditolak";
+          : "❌ Mutasi: ${type == 'increase' ? 'Masuk' : 'Keluar'} $qty Unit (Ditolak)";
     } else {
       return "Status mutasi tidak diketahui";
     }

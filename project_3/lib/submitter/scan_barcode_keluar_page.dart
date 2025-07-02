@@ -65,24 +65,29 @@ class _ScanBarcodeKeluarPageState extends State<ScanBarcodeKeluarPage> with Sing
     }
   }
 
-  Future<void> cekSKU(String sku) async {
-    if (_selectedKategoriId == null || _selectedSubKategoriId == null) {
+  Future<void> cekSKU(String sku, {bool fromSearch = false}) async {
+    if (!fromSearch && _selectedKategoriId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Pilih kategori dan subkategori terlebih dahulu!")),
+        const SnackBar(content: Text("Pilih kategori terlebih dahulu!")),
       );
       return;
     }
 
     final existingItem = await ApiService.fetchItemBySKU(sku);
-    
+
     if (existingItem != null) {
-      // ✅ Cek apakah termasuk kategori & subkategori terpilih
       final itemCategoryId = existingItem['category_id']?.toString();
       final itemSubCategoryId = existingItem['sub_category_id']?.toString();
 
-      if (itemCategoryId == _selectedKategoriId && itemSubCategoryId == _selectedSubKategoriId) {
+      if (fromSearch || (
+        itemCategoryId == _selectedKategoriId &&
+        (_selectedSubKategoriId == null || itemSubCategoryId == _selectedSubKategoriId)
+      )) {
         final success = await showKeluarStokDialog(existingItem);
         if (success == true && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Berhasil mengajukan pengurangan stok")),
+          );
           Navigator.pop(context, true);
         }
       } else {
@@ -93,7 +98,6 @@ class _ScanBarcodeKeluarPageState extends State<ScanBarcodeKeluarPage> with Sing
       return;
     }
 
-    // ❌ SKU tidak ditemukan
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Barang tidak ditemukan dalam sistem")),
     );
@@ -282,7 +286,7 @@ class _ScanBarcodeKeluarPageState extends State<ScanBarcodeKeluarPage> with Sing
                             title: Text(item['name']),
                             subtitle: Text('SKU: ${item['sku']} | Stok: ${item['stock']}'),
                             trailing: const Icon(Icons.remove_circle, color: Colors.indigoAccent),
-                            onTap: () => cekSKU(item['sku']),
+                            onTap: () => cekSKU(item['sku'], fromSearch: true),
                           ),
                         );
                       },

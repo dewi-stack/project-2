@@ -54,6 +54,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
+        'Accept': 'application/json', // ✅ Tambahkan ini!
       },
       body: jsonEncode({'status': status}),
     );

@@ -106,7 +106,7 @@ class ItemController extends Controller
     // ✅ Mencari item berdasarkan SKU
     public function findBySku($sku)
     {
-        $item = Item::with(['category', 'subCategory', 'user'])
+        $item = Item::with(['category', 'subCategory', 'user', 'stockRequests']) // ← tambah di sini
             ->where('sku', $sku)
             ->first();
 

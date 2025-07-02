@@ -228,7 +228,7 @@ class StokBarangApproverPage extends StatelessWidget {
                               : latestRequest['status'] == 'rejected'
                                   ? latestRequest['type'] == 'delete'
                                       ? "❌ Penghapusan Ditolak"
-                                      : "❌ Mutasi Ditolak"
+                                      : "❌ Mutasi: ${latestRequest['type'] == 'increase' ? 'Masuk' : 'Keluar'} ${latestRequest['quantity']} Unit (Ditolak)"
                                   : "Status tidak diketahui",
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),

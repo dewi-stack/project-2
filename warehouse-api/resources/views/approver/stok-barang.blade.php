@@ -1,6 +1,7 @@
 @extends('layouts.approver')
 
 @section('content')
+
   <h5 class="mb-4">📊 Data Stok Barang</h5>
 
   {{-- Ringkasan Kartu --}}

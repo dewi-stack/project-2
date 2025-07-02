@@ -78,49 +78,57 @@ class StockRequestController extends Controller
 
     // Approver: Setujui atau tolak permintaan stok (termasuk hapus)
     public function approve(Request $request, $id)
-    {
-        $validated = $request->validate([
-            'status' => 'required|in:approved,rejected',
-        ]);
+{
+    $validated = $request->validate([
+        'status' => 'required|in:approved,rejected',
+    ]);
 
-        $stockRequest = StockRequest::with('item')->find($id);
-        if (!$stockRequest) {
-            return response()->json(['message' => 'Stock request tidak ditemukan.'], 404);
-        }
-
-        if ($stockRequest->status !== 'pending') {
-            return response()->json(['message' => 'Permintaan sudah diproses sebelumnya.'], 400);
-        }
-
-        // Proses hanya jika disetujui
-        if ($validated['status'] === 'approved') {
-            $item = $stockRequest->item;
-
-            if ($stockRequest->type === 'decrease') {
-                if ($item->stock < $stockRequest->quantity) {
-                    return response()->json(['message' => 'Stok tidak mencukupi untuk dikurangi.'], 400);
-                }
-
-                $item->stock -= $stockRequest->quantity;
-                $item->save();
-            }
-
-            elseif ($stockRequest->type === 'increase') {
-                $item->stock += $stockRequest->quantity;
-                $item->save();
-            }
-
-            elseif ($stockRequest->type === 'delete') {
-                $item->delete();
-            }
-        }
-
-        // Update status permintaan
-        $stockRequest->status = $validated['status'];
-        $stockRequest->save();
-
-        return redirect()->back()->with('success', 'Status permintaan berhasil diperbarui menjadi ' . $validated['status']);
+    $stockRequest = StockRequest::with('item')->find($id);
+    if (!$stockRequest) {
+        $message = 'Stock request tidak ditemukan.';
+        return $request->wantsJson()
+            ? response()->json(['message' => $message], 404)
+            : redirect()->back()->with('error', $message);
     }
+
+    if ($stockRequest->status !== 'pending') {
+        $message = 'Permintaan sudah diproses sebelumnya.';
+        return $request->wantsJson()
+            ? response()->json(['message' => $message], 400)
+            : redirect()->back()->with('error', $message);
+    }
+
+    if ($validated['status'] === 'approved') {
+        $item = $stockRequest->item;
+
+        if ($stockRequest->type === 'decrease') {
+            if ($item->stock < $stockRequest->quantity) {
+                $message = 'Stok tidak mencukupi untuk dikurangi.';
+                return $request->wantsJson()
+                    ? response()->json(['message' => $message], 400)
+                    : redirect()->back()->with('error', $message);
+            }
+
+            $item->stock -= $stockRequest->quantity;
+            $item->save();
+        } elseif ($stockRequest->type === 'increase') {
+            $item->stock += $stockRequest->quantity;
+            $item->save();
+        } elseif ($stockRequest->type === 'delete') {
+            $item->delete();
+        }
+    }
+
+    $stockRequest->status = $validated['status'];
+    $stockRequest->save();
+
+    $message = 'Status permintaan berhasil diperbarui menjadi ' . $validated['status'];
+
+    return $request->wantsJson()
+        ? response()->json(['message' => $message, 'data' => $stockRequest])
+        : redirect()->route('approver.stok')->with('success', $message);
+}
+
 
     public function webStock(Request $request)
     {
