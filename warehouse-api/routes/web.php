@@ -23,7 +23,7 @@ Route::middleware(['auth'])->prefix('approver')->group(function () {
     Route::get('/mutasi-template', [StockRequestController::class, 'downloadTemplate'])
         ->name('approver.mutasi-masuk.template');
 
-    Route::post('/mutasi-import', [StockRequestController::class, 'importCsvMutasiMasuk'])
+    Route::post('/mutasi/import', [StockRequestController::class, 'importExcelMutasiMasuk'])
     ->name('approver.mutasi-masuk.import');
 
     // Approve/Reject permintaan

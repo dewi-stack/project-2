@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Support\Facades\Response;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class StockRequestController extends Controller
 {
@@ -233,21 +234,20 @@ class StockRequestController extends Controller
         // Sheet 1: Template dengan kategori
         $sheet1 = $spreadsheet->getActiveSheet();
         $sheet1->setTitle('Template');
-        $sheet1->fromArray(['sku,name,category,sub_category,location,stock,unit,description'], NULL, 'A1');
-        $sheet1->fromArray(['SKU001,Barang A,Kategori A,SubKategori A,Jakarta,10,Pcs,Deskripsi barang'], NULL, 'A2');
+        $sheet1->fromArray(['sku','name','category','sub_category','location','stock','unit','description'], NULL, 'A1');
+        $sheet1->fromArray(['SKU001','Barang A','Kategori A','SubKategori A','Jakarta','10','Pcs','Deskripsi barang'], NULL, 'A2');
 
         // Sheet 2: BACA DULU !!
         $sheet2 = $spreadsheet->createSheet();
         $sheet2->setTitle('BACA DULU !!');
         $sheet2->fromArray(['Contoh Format DENGAN Sub Kategori'], NULL, 'A1');
-        $sheet2->fromArray(['sku,name,category,sub_category,location,stock,unit,description'], NULL, 'A2');
-        $sheet2->fromArray(['SKU001,Barang A,Kategori A,SubKategori A,Jakarta,10,Pcs,Deskripsi barang'], NULL, 'A3');
+        $sheet2->fromArray(['sku','name','category','sub_category','location','stock','unit','description'], NULL, 'A2');
+        $sheet2->fromArray(['SKU001','Barang A','Kategori A','SubKategori A','Jakarta','10','Pcs','Deskripsi barang'], NULL, 'A3');
         $sheet2->fromArray([''], NULL, 'A4');
         $sheet2->fromArray(['Contoh Format TANPA Sub Kategori'], NULL, 'A5');
-        $sheet2->fromArray(['sku,name,category,location,stock,unit,description'], NULL, 'A6');
-        $sheet2->fromArray(['SKU002,Barang B,Kategori B,Surabaya,5,Pcs,Deskripsi barang'], NULL, 'A7');
+        $sheet2->fromArray(['sku','name','category','location','stock','unit','description'], NULL, 'A6');
+        $sheet2->fromArray(['SKU002','Barang B','Kategori B','Surabaya','5','Pcs','Deskripsi barang'], NULL, 'A7');
         $sheet2->fromArray([''], NULL, 'A8');
-        $sheet2->fromArray(['JANGAN LUPA SAVE FORMAT DALAM BENTUK CSV TERLEBIH DAHULU SEBELUM IMPORT DATA, KARENA WEB HANYA MENERIMA FILE DALAM FORMAT CSV SAJA !!'], NULL, 'A9');
 
         $writer = new Xlsx($spreadsheet);
         $fileName = 'template_mutasi_masuk.xlsx';
@@ -259,27 +259,31 @@ class StockRequestController extends Controller
         return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
     }
 
-    public function importCsvMutasiMasuk(Request $request)
+    public function importExcelMutasiMasuk(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:2048',
+            'file' => 'required|file|mimes:xlsx,xls|max:2048',
         ]);
 
-        $file = fopen($request->file('file')->getRealPath(), 'r');
-        $header = fgetcsv($file);
+        $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray(null, true, true, true);
+
+        // Hilangkan header
+        array_shift($rows);
 
         $userId = Auth::id();
         $success = 0;
         $error = 0;
 
-        while (($row = fgetcsv($file)) !== false) {
+        foreach ($rows as $row) {
             try {
-                // Deteksi jumlah kolom: dengan atau tanpa sub kategori
+                $row = array_values($row); // Convert to index array
+
+                // Deteksi jumlah kolom
                 if (count($row) == 8) {
-                    // Format: SKU, Name, Category, SubCategory, Location, Stock, Unit, Description
                     [$sku, $name, $categoryName, $subCategoryName, $location, $stock, $unit, $description] = $row;
                 } elseif (count($row) == 7) {
-                    // Format tanpa sub kategori: SKU, Name, Category, Location, Stock, Unit, Description
                     [$sku, $name, $categoryName, $location, $stock, $unit, $description] = $row;
                     $subCategoryName = null;
                 } else {
@@ -335,12 +339,10 @@ class StockRequestController extends Controller
 
                 $success++;
             } catch (\Throwable $e) {
-                \Log::error("Import CSV Error: {$e->getMessage()}");
+                Log::error("Import Excel Error: {$e->getMessage()}");
                 $error++;
             }
         }
-
-        fclose($file);
 
         return redirect()->route('approver.mutasi-masuk')->with('success', "Import selesai. Berhasil: $success, Gagal: $error.");
     }

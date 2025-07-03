@@ -78,101 +78,113 @@
     </div>
   </form>
 
-  {{-- Data Barang --}}
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    @forelse ($items as $item)
-      @php
-          $latestIncrease = $item->stockRequests
-              ->where('type', 'increase')
-              ->sortByDesc('created_at')
-              ->first();
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+  @forelse ($items as $item)
 
-          $pendingDelete = $item->stockRequests
-              ->where('type', 'delete')
-              ->where('status', 'pending')
-              ->sortByDesc('created_at')
-              ->first();
-      @endphp
+    @php
+      $latestIncrease = $item->stockRequests->where('type', 'increase')->sortByDesc('created_at')->first();
+      $latestDecrease = $item->stockRequests->where('type', 'decrease')->sortByDesc('created_at')->first();
+      $pendingDelete  = $item->stockRequests->where('type', 'delete')->where('status', 'pending')->sortByDesc('created_at')->first();
+    @endphp
 
-      <div class="col">
-        <div class="card shadow-sm h-100 border-0 d-flex flex-column justify-content-between">
-          <div class="card-body">
-            <h5 class="card-title text-primary">{{ $item->name }}</h5>
+    <div class="col">
+      <div class="card shadow-sm h-100 border-0 d-flex flex-column justify-content-between">
+        <div class="card-body">
+          <h5 class="card-title text-primary">{{ $item->name }}</h5>
+          <p class="mb-1">
+            <strong>Kode Barang:</strong> {{ $item->sku }}<br>
+            <strong>Stok:</strong> {{ $item->stock }}<br>
 
-            <p class="mb-1">
-              <strong>Kode Barang:</strong> {{ $item->sku }}<br>
-              <strong>Stok:</strong> {{ $item->stock }}<br>
+            {{-- Mutasi Terbaru --}}
+            @php
+              $latestMutation = null;
 
-              {{-- Mutasi Masuk --}}
-              @if ($latestIncrease)
-                <strong>Mutasi:</strong>
-                @if ($latestIncrease->status === 'pending')
-                  <span class="badge bg-warning text-dark">
-                    ⏳ Masuk {{ $latestIncrease->quantity }} Unit (Menunggu Persetujuan)
-                  </span><br>
-                @elseif ($latestIncrease->status === 'approved')
-                  <span class="badge bg-success">
-                    ✅ Masuk {{ $latestIncrease->quantity }} Unit (Telah Disetujui)
-                  </span><br>
-                @else
-                  <span class="badge bg-secondary">
-                    ❌ Mutasi Ditolak ({{ $latestIncrease->quantity }})
-                  </span><br>
-                @endif
-              @endif
+              if ($latestIncrease && $latestDecrease) {
+                  $latestMutation = $latestIncrease->created_at > $latestDecrease->created_at ? $latestIncrease : $latestDecrease;
+              } elseif ($latestIncrease) {
+                  $latestMutation = $latestIncrease;
+              } elseif ($latestDecrease) {
+                  $latestMutation = $latestDecrease;
+              }
+            @endphp
 
-              {{-- Status Penghapusan --}}
-              @if ($pendingDelete)
-                <strong>Status:</strong>
-                <span class="badge bg-danger text-light">🗑️ Permintaan Penghapusan (Menunggu Persetujuan)</span><br>
-              @endif
+            @if ($latestMutation)
+              <strong>Mutasi:</strong>
+              @php
+                $icon = $latestMutation->type === 'increase' ? 'Masuk' : 'Keluar';
+                $badge = match($latestMutation->status) {
+                  'pending' => 'bg-warning text-dark',
+                  'approved' => 'bg-success',
+                  'rejected' => 'bg-secondary',
+                  default => 'bg-light text-dark'
+                };
+                $statusLabel = match($latestMutation->status) {
+                  'pending' => '⏳',
+                  'approved' => '✅',
+                  'rejected' => '❌',
+                  default => ''
+                };
+              @endphp
+              <span class="badge {{ $badge }}">
+                {{ $statusLabel }} {{ $icon }} {{ $latestMutation->quantity }} Unit
+                ({{ ucfirst($latestMutation->status === 'approved' ? 'Telah Disetujui' : ($latestMutation->status === 'pending' ? 'Menunggu Persetujuan' : 'Ditolak')) }})
+              </span><br>
+            @endif
 
-              <strong>Kategori:</strong> {{ $item->category->name ?? '-' }}<br>
-              <strong>Lokasi:</strong> {{ $item->location }}<br>
-              <strong>Keterangan:</strong> {{ $item->description ?? '-' }}
-            </p>
-          </div>
-
-          <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center px-3 pb-3">
-            <div>
-              @if ($item->stock == 0)
-                <span class="badge bg-danger">❌ Stok Habis</span>
-              @elseif ($item->stock <= 10)
-                <span class="badge bg-warning text-dark">⚠️ Stok Menipis</span>
-              @else
-                <span class="badge bg-success">✅ Stok Aman</span>
-              @endif
-            </div>
-
+            {{-- Status Penghapusan --}}
             @if ($pendingDelete)
-              <div>
-                <form method="POST" action="{{ route('approver.approve', $pendingDelete->id) }}" class="d-inline">
-                  @csrf
-                  @method('PUT')
-                  <input type="hidden" name="status" value="approved">
-                  <button type="submit" class="btn btn-sm btn-success" title="Setujui" onclick="return confirm('Setujui penghapusan item ini?')">
-                    <i class="bi bi-check-circle"></i>
-                  </button>
-                </form>
-                <form method="POST" action="{{ route('approver.approve', $pendingDelete->id) }}" class="d-inline">
-                  @csrf
-                  @method('PUT')
-                  <input type="hidden" name="status" value="rejected">
-                  <button type="submit" class="btn btn-sm btn-danger" title="Tolak" onclick="return confirm('Tolak penghapusan item ini?')">
-                    <i class="bi bi-x-circle"></i>
-                  </button>
-                </form>
-              </div>
+              <strong>Status:</strong>
+              <span class="badge bg-danger text-light">🗑️ Permintaan Penghapusan (Menunggu Persetujuan)</span><br>
+            @endif
+
+            <strong>Kategori:</strong> {{ $item->category->name ?? '-' }}<br>
+            <strong>Lokasi:</strong> {{ $item->location }}<br>
+            <strong>Keterangan:</strong> {{ $item->description ?? '-' }}
+          </p>
+        </div>
+
+        <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center px-3 pb-3">
+          <div>
+            @if ($item->stock == 0)
+              <span class="badge bg-danger">❌ Stok Habis</span>
+            @elseif ($item->stock <= 10)
+              <span class="badge bg-warning text-dark">⚠️ Stok Menipis</span>
+            @else
+              <span class="badge bg-success">✅ Stok Aman</span>
             @endif
           </div>
+
+          @if ($pendingDelete)
+            <div>
+              <form method="POST" action="{{ route('approver.approve', $pendingDelete->id) }}" class="d-inline">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="status" value="approved">
+                <button type="submit" class="btn btn-sm btn-success" title="Setujui" onclick="return confirm('Setujui penghapusan item ini?')">
+                  <i class="bi bi-check-circle"></i>
+                </button>
+              </form>
+              <form method="POST" action="{{ route('approver.approve', $pendingDelete->id) }}" class="d-inline">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="status" value="rejected">
+                <button type="submit" class="btn btn-sm btn-danger" title="Tolak" onclick="return confirm('Tolak penghapusan item ini?')">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </form>
+            </div>
+          @endif
         </div>
       </div>
-    @empty
-      <div class="col">
-        <div class="alert alert-warning">Tidak ada data barang.</div>
-      </div>
-    @endforelse
-  </div>
+    </div>
+
+  @empty
+    <div class="col">
+      <div class="alert alert-warning">Tidak ada data barang.</div>
+    </div>
+  @endforelse
+</div>
+
 @endsection
 
 @push('scripts')
@@ -232,4 +244,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-

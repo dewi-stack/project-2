@@ -27,7 +27,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.3:8000/api/stock-requests'),
+      Uri.parse('https://green-dog-346335.hostingersite.com/api/stock-requests'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -50,7 +50,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.3:8000/api/stock-requests/$id/approve'),
+      Uri.parse('https://green-dog-346335.hostingersite.com/api/stock-requests/$id/approve'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
