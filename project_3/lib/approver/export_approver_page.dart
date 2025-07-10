@@ -36,7 +36,7 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/items'),
+      Uri.parse('http://192.168.1.6:8000/api/items'),
       headers: {'Authorization': 'Bearer $token'},
     );
 

@@ -35,5 +35,8 @@ Route::middleware(['auth'])->prefix('approver')->group(function () {
         ->name('api.subcategories.byCategory');
 });
 
+Route::get('/test-time', function () {
+    return now()->toDateTimeString();
+});
 
 

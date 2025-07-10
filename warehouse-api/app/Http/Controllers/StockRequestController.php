@@ -79,97 +79,94 @@ class StockRequestController extends Controller
 
     // Approver: Setujui atau tolak permintaan stok (termasuk hapus)
     public function approve(Request $request, $id)
-{
-    $validated = $request->validate([
-        'status' => 'required|in:approved,rejected',
-    ]);
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:approved,rejected',
+        ]);
 
-    $stockRequest = StockRequest::with('item')->find($id);
-    if (!$stockRequest) {
-        $message = 'Stock request tidak ditemukan.';
-        return $request->wantsJson()
-            ? response()->json(['message' => $message], 404)
-            : redirect()->back()->with('error', $message);
-    }
-
-    if ($stockRequest->status !== 'pending') {
-        $message = 'Permintaan sudah diproses sebelumnya.';
-        return $request->wantsJson()
-            ? response()->json(['message' => $message], 400)
-            : redirect()->back()->with('error', $message);
-    }
-
-    if ($validated['status'] === 'approved') {
-        $item = $stockRequest->item;
-
-        if ($stockRequest->type === 'decrease') {
-            if ($item->stock < $stockRequest->quantity) {
-                $message = 'Stok tidak mencukupi untuk dikurangi.';
-                return $request->wantsJson()
-                    ? response()->json(['message' => $message], 400)
-                    : redirect()->back()->with('error', $message);
-            }
-
-            $item->stock -= $stockRequest->quantity;
-            $item->save();
-        } elseif ($stockRequest->type === 'increase') {
-            $item->stock += $stockRequest->quantity;
-            $item->save();
-        } elseif ($stockRequest->type === 'delete') {
-            $item->delete();
+        $stockRequest = StockRequest::with('item')->find($id);
+        if (!$stockRequest) {
+            $message = 'Stock request tidak ditemukan.';
+            return $request->wantsJson()
+                ? response()->json(['message' => $message], 404)
+                : redirect()->back()->with('error', $message);
         }
+
+        if ($stockRequest->status !== 'pending') {
+            $message = 'Permintaan sudah diproses sebelumnya.';
+            return $request->wantsJson()
+                ? response()->json(['message' => $message], 400)
+                : redirect()->back()->with('error', $message);
+        }
+
+        if ($validated['status'] === 'approved') {
+            $item = $stockRequest->item;
+
+            if ($stockRequest->type === 'decrease') {
+                if ($item->stock < $stockRequest->quantity) {
+                    $message = 'Stok tidak mencukupi untuk dikurangi.';
+                    return $request->wantsJson()
+                        ? response()->json(['message' => $message], 400)
+                        : redirect()->back()->with('error', $message);
+                }
+
+                $item->stock -= $stockRequest->quantity;
+                $item->save();
+            } elseif ($stockRequest->type === 'increase') {
+                $item->stock += $stockRequest->quantity;
+                $item->save();
+            } elseif ($stockRequest->type === 'delete') {
+                $item->delete();
+            }
+        }
+
+        $stockRequest->status = $validated['status'];
+        $stockRequest->save();
+
+        $message = 'Status permintaan berhasil diperbarui menjadi ' . $validated['status'];
+
+        return $request->wantsJson()
+            ? response()->json(['message' => $message, 'data' => $stockRequest])
+            : redirect()->route('approver.stok')->with('success', $message);
     }
-
-    $stockRequest->status = $validated['status'];
-    $stockRequest->save();
-
-    $message = 'Status permintaan berhasil diperbarui menjadi ' . $validated['status'];
-
-    return $request->wantsJson()
-        ? response()->json(['message' => $message, 'data' => $stockRequest])
-        : redirect()->route('approver.stok')->with('success', $message);
-}
 
 
     public function webStock(Request $request)
     {
-        $items = Item::with(['category', 'subCategory', 'stockRequests'])
-            ->when($request->category, fn($q) =>
-                $q->where('category_id', $request->category))
-            ->when($request->sub_category, fn($q) =>
-                $q->where('sub_category_id', $request->sub_category))
-            ->when($request->q, fn($q) =>
-                $q->where(function ($query) use ($request) {
-                    $query->where('name', 'like', '%' . $request->q . '%')
-                        ->orWhere('sku', 'like', '%' . $request->q . '%');
-                }))
-            ->get();
+        $items = Item::with(['category', 'subCategory', 'stockRequests' => function ($q) {
+                $q->latest(); // agar urutan stockRequests per item dari terbaru
+            }])
+            ->when($request->category, fn($q) => $q->where('category_id', $request->category))
+            ->when($request->sub_category, fn($q) => $q->where('sub_category_id', $request->sub_category))
+            ->when($request->q, fn($q) => $q->where(function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->q . '%')
+                    ->orWhere('sku', 'like', '%' . $request->q . '%');
+            }))
+            ->orderBy('updated_at', 'desc')
+            ->paginate(30)
+            ->appends($request->all());
 
-        // Hitung summary
-        $totalItems = $items->count();
-        $stokHabis = $items->where('stock', 0)->count();
-        $stokMenipis = $items->where('stock', '>', 0)->where('stock', '<=', 10)->count();
-        $stokAman = $items->where('stock', '>', 10)->count();
+        // Ringkasan
+        $totalItems = $items->total();
+        $stokHabis = $items->filter(fn($item) => $item->stock == 0)->count();
+        $stokMenipis = $items->filter(fn($item) => $item->stock > 0 && $item->stock <= 10)->count();
+        $stokAman = $items->filter(fn($item) => $item->stock > 10)->count();
 
-        // Ambil semua kategori untuk dropdown
-        $categories = \App\Models\Category::orderBy('name')->get();
+        // Dropdown
+        $categories = Category::orderBy('name')->get();
+        $subCategories = $request->category
+            ? SubCategory::where('category_id', $request->category)->orderBy('name')->get()
+            : collect();
 
-        // Jika kategori dipilih, ambil sub kategori untuk dropdown
-        $subCategories = collect();
-        if ($request->category) {
-            $subCategories = \App\Models\SubCategory::where('category_id', $request->category)
-                ->orderBy('name')
-                ->get();
-        }
+        // Ambil mutasi terbaru (ringkas saja)
+        $latestIncrease = StockRequest::with('item')->where('type', 'increase')->latest()->limit(5)->get();
+        $latestDecrease = StockRequest::with('item')->where('type', 'decrease')->latest()->limit(5)->get();
+        $latestDeletes  = StockRequest::with('item')->where('type', 'delete')->where('status', 'pending')->latest()->limit(5)->get();
 
         return view('approver.stok-barang', compact(
-            'items',
-            'totalItems',
-            'stokHabis',
-            'stokMenipis',
-            'stokAman',
-            'categories',
-            'subCategories' // kirim ke view
+            'items', 'totalItems', 'stokHabis', 'stokMenipis', 'stokAman',
+            'categories', 'subCategories',
+            'latestIncrease', 'latestDecrease', 'latestDeletes'
         ));
     }
 

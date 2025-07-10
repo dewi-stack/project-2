@@ -56,7 +56,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/items'),
+      Uri.parse('http://192.168.1.6:8000/api/items'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -80,7 +80,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/categories'),
+      Uri.parse('http://192.168.1.6:8000/api/categories'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -107,7 +107,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (categoryId == null) return;
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/sub-categories?category_id=$categoryId'),
+      Uri.parse('http://192.168.1.6:8000/api/sub-categories?category_id=$categoryId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -347,7 +347,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final token = prefs.getString('token');
 
     final response = await http.delete(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/items/$id'),
+      Uri.parse('http://192.168.1.6:8000/api/items/$id'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',

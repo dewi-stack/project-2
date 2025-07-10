@@ -112,10 +112,11 @@
               <strong>Mutasi:</strong>
               @php
                 $icon = $latestMutation->type === 'increase' ? 'Masuk' : 'Keluar';
-                $badge = match($latestMutation->status) {
-                  'pending' => 'bg-warning text-dark',
-                  'approved' => 'bg-success',
-                  'rejected' => 'bg-secondary',
+                $badge = match(true) {
+                  $latestMutation->type === 'decrease' => 'bg-warning text-dark', // Mutasi keluar selalu kuning
+                  $latestMutation->status === 'pending' => 'bg-warning text-dark',
+                  $latestMutation->status === 'approved' => 'bg-success',
+                  $latestMutation->status === 'rejected' => 'bg-secondary',
                   default => 'bg-light text-dark'
                 };
                 $statusLabel = match($latestMutation->status) {
@@ -139,7 +140,12 @@
 
             <strong>Kategori:</strong> {{ $item->category->name ?? '-' }}<br>
             <strong>Lokasi:</strong> {{ $item->location }}<br>
-            <strong>Keterangan:</strong> {{ $item->description ?? '-' }}
+            <strong>Keterangan:</strong>
+            @if ($latestMutation && $latestMutation->description)
+              {{ $latestMutation->description }}
+            @else
+              {{ $item->description ?? '-' }}
+            @endif
           </p>
         </div>
 
@@ -184,6 +190,16 @@
     </div>
   @endforelse
 </div>
+
+{{-- Navigasi Pagination --}}
+@if ($items->hasPages())
+  <div class="mt-4 d-flex justify-content-center">
+    <nav>
+      {{ $items->withQueryString()->links() }}
+    </nav>
+  </div>
+@endif
+
 
 @endsection
 

@@ -55,7 +55,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/items'),
+      Uri.parse('http://192.168.1.6:8000/api/items'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -78,7 +78,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/categories'),
+      Uri.parse('http://192.168.1.6:8000/api/categories'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -105,7 +105,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (categoryId == null) return;
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/sub-categories?category_id=$categoryId'),
+      Uri.parse('http://192.168.1.6:8000/api/sub-categories?category_id=$categoryId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',

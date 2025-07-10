@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = "https://green-dog-346335.hostingersite.com/api";
+  static const String baseUrl = "http://192.168.1.6:8000/api";
 
   static Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
@@ -84,7 +84,7 @@ class ApiService {
     final token = await getToken(); // Ambil token dari SharedPreferences
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/items/search?q=$keyword'),
+      Uri.parse('http://192.168.1.6:8000/api/items/search?q=$keyword'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -221,7 +221,7 @@ class ApiService {
     final token = prefs.getString('token');
 
     final response = await http.post(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/stock-requests'),
+      Uri.parse('http://192.168.1.6:8000/api/stock-requests'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',

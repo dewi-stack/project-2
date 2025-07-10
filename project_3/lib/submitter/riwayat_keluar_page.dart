@@ -33,7 +33,7 @@ class _RiwayatKeluarPageState extends State<RiwayatKeluarPage> {
     if (token == null) return;
     try {
       final response = await http.get(
-        Uri.parse('https://green-dog-346335.hostingersite.com/api/items'),
+        Uri.parse('http://192.168.1.6:8000/api/items'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {
@@ -49,7 +49,7 @@ class _RiwayatKeluarPageState extends State<RiwayatKeluarPage> {
     if (token == null) return;
     try {
       final response = await http.get(
-        Uri.parse('https://green-dog-346335.hostingersite.com/api/my-stock-requests'),
+        Uri.parse('http://192.168.1.6:8000/api/my-stock-requests'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {
