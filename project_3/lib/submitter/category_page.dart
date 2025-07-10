@@ -25,7 +25,7 @@ class _CategoryPageState extends State<CategoryPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
+      Uri.parse('https://green-dog-346335.hostingersite.com/api/categories'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -43,7 +43,7 @@ class _CategoryPageState extends State<CategoryPage> {
     final token = prefs.getString('token');
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
+      Uri.parse('https://green-dog-346335.hostingersite.com/api/categories'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -69,7 +69,7 @@ class _CategoryPageState extends State<CategoryPage> {
     final token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.6:8000/api/categories/$id'),
+      Uri.parse('https://green-dog-346335.hostingersite.com/api/categories/$id'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -95,7 +95,7 @@ class _CategoryPageState extends State<CategoryPage> {
     final token = prefs.getString('token');
 
     final response = await http.delete(
-      Uri.parse('http://192.168.1.6:8000/api/categories/$id'),
+      Uri.parse('https://green-dog-346335.hostingersite.com/api/categories/$id'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -119,7 +119,7 @@ class _CategoryPageState extends State<CategoryPage> {
     final token = prefs.getString('token');
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/subcategory-requests'),
+      Uri.parse('https://green-dog-346335.hostingersite.com/api/subcategory-requests'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
