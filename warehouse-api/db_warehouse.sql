@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 02, 2025 at 04:56 PM
+-- Generation Time: Jul 17, 2025 at 11:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -66,7 +66,36 @@ INSERT INTO `categories` (`id`, `name`, `created_at`, `updated_at`) VALUES
 (9, 'Raw Material Bahan Aktif', '2025-06-25 06:26:19', '2025-06-25 06:26:19'),
 (10, 'Raw Material Supporting', '2025-06-25 06:26:19', '2025-06-25 06:26:19'),
 (11, 'Barang Dalam Proses', '2025-06-25 06:26:19', '2025-06-27 21:29:12'),
-(12, 'Barang Jadi', '2025-06-26 21:07:32', '2025-06-26 21:07:32');
+(12, 'Barang Jadi', '2025-06-26 21:07:32', '2025-06-26 21:07:32'),
+(17, 'Barang Percobaan', '2025-07-12 10:58:29', '2025-07-12 10:58:29');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `category_requests`
+--
+
+CREATE TABLE `category_requests` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `category_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `action` enum('add','edit','delete') NOT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `requested_by` bigint(20) UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `category_requests`
+--
+
+INSERT INTO `category_requests` (`id`, `category_id`, `name`, `action`, `status`, `requested_by`, `created_at`, `updated_at`) VALUES
+(1, 16, 'Barang Percobaan', 'add', 'approved', 1, '2025-07-12 10:36:02', '2025-07-12 10:43:32'),
+(2, 16, 'Barang Percobaan Edit', 'edit', 'approved', 1, '2025-07-12 10:48:05', '2025-07-12 10:52:46'),
+(3, 17, 'Barang Percobaan', 'add', 'approved', 1, '2025-07-12 10:55:45', '2025-07-12 10:58:29'),
+(4, 17, 'Barang Percobaan', 'delete', 'rejected', 1, '2025-07-12 11:03:33', '2025-07-12 11:11:09'),
+(5, 16, 'Barang Percobaan Edit', 'delete', 'approved', 1, '2025-07-13 04:40:44', '2025-07-13 04:41:32');
 
 -- --------------------------------------------------------
 
@@ -110,12 +139,17 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id`, `sku`, `name`, `category_id`, `sub_category_id`, `location`, `stock`, `unit`, `description`, `user_id`, `created_at`, `updated_at`) VALUES
-(22, 'SKU001', 'Barang A', 9, 1, 'Malang', 90, 'Box', 'Ada di Gudang A', 1, '2025-06-25 20:32:03', '2025-07-02 05:16:05'),
-(25, 'SKU002', 'Barang B', 10, 6, 'Malang', 40, 'Box', 'Barang diterima dari supplier A', 2, '2025-06-28 21:27:06', '2025-07-02 07:21:12'),
+(22, 'SKU001', 'Barang A', 9, 1, 'Malang', 100, 'Box', 'Ada di Gudang A', 1, '2025-06-25 20:32:03', '2025-07-12 14:40:24'),
+(25, 'SKU002', 'Barang B', 10, 6, 'Malang', 43, 'Box', 'Barang diterima dari supplier A', 2, '2025-06-28 21:27:06', '2025-07-13 13:17:41'),
 (26, 'SKU003', 'Barang C', 12, 10, 'Kediri', 50, 'Pcs', 'Persediaan tambahan', 2, '2025-06-28 21:27:06', '2025-06-28 21:27:06'),
-(28, 'SKU005', 'Barang E', 9, 3, 'Surabaya', 35, 'Box', 'Mencoba dashboard approver web', 1, '2025-06-29 17:53:05', '2025-07-02 05:24:42'),
+(28, 'SKU005', 'Barang E', 9, 3, 'Surabaya', 50, 'Box', 'Mencoba dashboard approver web', 1, '2025-06-29 17:53:05', '2025-07-13 04:41:18'),
 (29, 'SKU006', 'Barang F', 10, 7, 'Surabaya', 120, 'Pcs', 'Mencoba lagi', 1, '2025-06-29 20:48:00', '2025-07-02 07:53:24'),
-(30, 'SKU004', 'Barang D', 11, NULL, 'Surabaya', 90, 'Pcs', 'Mencoba Mutasi Masuk', 1, '2025-07-02 03:34:54', '2025-07-02 07:26:12');
+(30, 'SKU004', 'Barang D', 11, NULL, 'Surabaya', 90, 'Pcs', 'Mencoba Mutasi Masuk', 1, '2025-07-02 03:34:54', '2025-07-02 07:26:12'),
+(31, 'SKU007', 'Barang G', 10, 7, 'Jakarta', 110, 'Pcs', 'Mencoba Import Excel', 2, '2025-07-03 03:17:08', '2025-07-03 03:17:08'),
+(32, 'SKU009', 'Barang I', 12, 11, 'Jakarta', 100, 'Pcs', 'Mencoba Created Time', 2, '2025-07-10 02:59:54', '2025-07-10 02:59:54'),
+(33, 'SKU010', 'Barang J', 12, 9, 'Jakarta', 100, 'Pcs', 'Mencoba Created Time', 2, '2025-07-10 10:06:44', '2025-07-10 10:06:44'),
+(34, 'SKU011', 'Barang K', 12, 11, 'Jakarta', 58, 'Pcs', 'Mencoba Terbaru', 2, '2025-07-13 01:58:33', '2025-07-13 13:18:01'),
+(36, 'SKU0012', 'Barang L', 17, NULL, 'Malang', 10, 'box', 'Mencoba Terakhir Lagi', 1, '2025-07-16 03:05:11', '2025-07-16 04:28:35');
 
 -- --------------------------------------------------------
 
@@ -186,7 +220,12 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (15, '2025_06_25_131822_add_name_to_sub_categories_table', 9),
 (16, '2025_06_25_132431_add_category_id_to_sub_categories_table', 10),
 (17, '2025_06_27_100613_update_type_enum_in_stock_requests_table', 11),
-(18, '2025_06_27_134956_create_sub_category_requests_table', 12);
+(18, '2025_06_27_134956_create_sub_category_requests_table', 12),
+(19, '2025_07_12_113953_create_category_requests_table', 13),
+(20, '2025_07_12_120552_update_sub_category_requests_table', 13),
+(21, '2025_07_12_182756_add_login_token_to_users_table', 14),
+(22, '2025_07_13_084614_add_approved_by_to_stock_requests_table', 15),
+(23, '2025_07_13_171423_remove_login_token_from_users_table', 16);
 
 -- --------------------------------------------------------
 
@@ -773,7 +812,103 @@ INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `n
 (545, 'App\\Models\\User', 2, 'api-token', 'e67e92ad48a840f6a5aefd0966996dfe594bcd6d6ac5fb02d896a3fac397150e', '[\"*\"]', '2025-07-02 07:27:23', NULL, '2025-07-02 07:23:10', '2025-07-02 07:27:23'),
 (546, 'App\\Models\\User', 1, 'api-token', 'cf0a2f1ba7738a6b1377c1c74790d25d242ea33140daec08671a693588800132', '[\"*\"]', '2025-07-02 07:27:14', NULL, '2025-07-02 07:25:34', '2025-07-02 07:27:14'),
 (547, 'App\\Models\\User', 1, 'api-token', 'e0ead985addf12214b9d7dae054530d8b3a01a45fdd195316acbac676b793fb6', '[\"*\"]', '2025-07-02 07:52:53', NULL, '2025-07-02 07:52:11', '2025-07-02 07:52:53'),
-(548, 'App\\Models\\User', 2, 'api-token', '273b421bb27abf2723dbf33b3d569779c4d14b0bc971906e108dd3b930b887bd', '[\"*\"]', '2025-07-02 07:53:25', NULL, '2025-07-02 07:53:08', '2025-07-02 07:53:25');
+(548, 'App\\Models\\User', 2, 'api-token', '273b421bb27abf2723dbf33b3d569779c4d14b0bc971906e108dd3b930b887bd', '[\"*\"]', '2025-07-02 07:53:25', NULL, '2025-07-02 07:53:08', '2025-07-02 07:53:25'),
+(549, 'App\\Models\\User', 2, 'api-token', '22a48513f8b0aedad66717de7c36f0249395a9bb4cc81bc34e3546e98e53e44d', '[\"*\"]', '2025-07-10 10:07:41', NULL, '2025-07-10 10:07:35', '2025-07-10 10:07:41'),
+(550, 'App\\Models\\User', 1, 'api-token', 'cce4dd8ef2d1e06dd674345ec648622c8b864aee87b6d569c09fe9bfe0da85b6', '[\"*\"]', '2025-07-12 04:56:51', NULL, '2025-07-12 04:56:27', '2025-07-12 04:56:51'),
+(551, 'App\\Models\\User', 1, 'api-token', 'cb96b8a2e117300097324aaaef60870e4592c9e14cef0b1bb492169bceb90af4', '[\"*\"]', '2025-07-12 05:13:50', NULL, '2025-07-12 05:10:58', '2025-07-12 05:13:50'),
+(552, 'App\\Models\\User', 1, 'api-token', '8317b03f1859242dd2200c3fdfc64f3ba4f820d7f1a81d4e672b53650f42a34b', '[\"*\"]', '2025-07-12 05:26:16', NULL, '2025-07-12 05:18:16', '2025-07-12 05:26:16'),
+(553, 'App\\Models\\User', 1, 'api-token', 'f67cf021cf8cb34b0ec6b0b1e6b225ce54d1d502f31b3e5b4b0bf933cfe5aebc', '[\"*\"]', '2025-07-12 05:27:00', NULL, '2025-07-12 05:26:46', '2025-07-12 05:27:00'),
+(554, 'App\\Models\\User', 1, 'api-token', 'e8f718f5cf5711bc995c9b4811694d73648e4242933094c78a852c88816d09fc', '[\"*\"]', '2025-07-12 10:15:04', NULL, '2025-07-12 10:14:02', '2025-07-12 10:15:04'),
+(555, 'App\\Models\\User', 1, 'api-token', '47d6b681ef7467e1ecf8e8f93315653e2c9f9f2535727a0e925eca34a3f5fd6d', '[\"*\"]', '2025-07-12 10:24:54', NULL, '2025-07-12 10:23:58', '2025-07-12 10:24:54'),
+(556, 'App\\Models\\User', 1, 'api-token', '59ad5814a1094c74db944572a035e924abd461c681c56b8c32da0b8723d8631f', '[\"*\"]', '2025-07-12 10:27:33', NULL, '2025-07-12 10:27:17', '2025-07-12 10:27:33'),
+(557, 'App\\Models\\User', 1, 'api-token', '4b14bbc0336e5a97dc7bb2d4e1bf6569b52753517e928799102a36706c8985e1', '[\"*\"]', '2025-07-12 10:31:58', NULL, '2025-07-12 10:31:42', '2025-07-12 10:31:58'),
+(558, 'App\\Models\\User', 1, 'api-token', '24d02cb216c58d7f1872575d33a0a2454fc341c22ebefbb61f1df46af257adbc', '[\"*\"]', '2025-07-12 10:33:51', NULL, '2025-07-12 10:33:36', '2025-07-12 10:33:51'),
+(559, 'App\\Models\\User', 1, 'api-token', '3dd020e78dd22210e42e613ded859c840914860650a34ea627618eda1cfb2b85', '[\"*\"]', '2025-07-12 10:36:02', NULL, '2025-07-12 10:35:48', '2025-07-12 10:36:02'),
+(560, 'App\\Models\\User', 2, 'api-token', '10dfe53cc43729acf06ebb78f39be2442df0d2d1a94d44295d2f91665a56b1cf', '[\"*\"]', '2025-07-12 10:36:32', NULL, '2025-07-12 10:36:26', '2025-07-12 10:36:32'),
+(561, 'App\\Models\\User', 2, 'api-token', 'ad0618e80fa6f2529950c65317fdd40b5b019fd8d00f144d9f660cecc1528ca4', '[\"*\"]', '2025-07-12 10:38:47', NULL, '2025-07-12 10:38:42', '2025-07-12 10:38:47'),
+(562, 'App\\Models\\User', 2, 'api-token', '7d250685e4e88021c009d005247d92dbf57c5687b5c21bdcee5a7ef6eca68186', '[\"*\"]', '2025-07-12 10:43:33', NULL, '2025-07-12 10:43:25', '2025-07-12 10:43:33'),
+(563, 'App\\Models\\User', 1, 'api-token', '7792af30507ed2f33719d66981c7ff693503ad69efdca407697d0c24205a1e8a', '[\"*\"]', '2025-07-12 10:44:19', NULL, '2025-07-12 10:44:01', '2025-07-12 10:44:19'),
+(564, 'App\\Models\\User', 1, 'api-token', 'b9cfb75b6106e7d4098e7813721b77f2b44c8ed28972186f0db6fc904ee1ba62', '[\"*\"]', '2025-07-12 10:45:24', NULL, '2025-07-12 10:45:12', '2025-07-12 10:45:24'),
+(565, 'App\\Models\\User', 1, 'api-token', 'e3a0a8eb7723ebfc9a99b3a95474e7a575aad44bcc0f9b98df64a721493409a1', '[\"*\"]', '2025-07-12 10:48:05', NULL, '2025-07-12 10:47:32', '2025-07-12 10:48:05'),
+(566, 'App\\Models\\User', 2, 'api-token', 'd90f9eca37eefc90f23a1c0f118e5659b5839fe3e348d0daddf402ecf412c3f6', '[\"*\"]', '2025-07-12 10:48:26', NULL, '2025-07-12 10:48:22', '2025-07-12 10:48:26'),
+(567, 'App\\Models\\User', 2, 'api-token', '983a4e64facb6713c64be05bd3b4dbf56442f1d5712bb9d01f36d330e1199a19', '[\"*\"]', '2025-07-12 10:52:47', NULL, '2025-07-12 10:52:24', '2025-07-12 10:52:47'),
+(568, 'App\\Models\\User', 1, 'api-token', '50f2fef6f07b350928b05cab8d77d1fee612802e2ab7557448a433939310be5e', '[\"*\"]', '2025-07-12 10:55:45', NULL, '2025-07-12 10:55:20', '2025-07-12 10:55:45'),
+(569, 'App\\Models\\User', 2, 'api-token', 'ff4b45855e09b2977b7b29f65d186fe3227b2d5466d63d6bbd90a439b47e1b39', '[\"*\"]', '2025-07-12 10:56:27', NULL, '2025-07-12 10:56:05', '2025-07-12 10:56:27'),
+(570, 'App\\Models\\User', 2, 'api-token', '3ab9aff1bf37304f6559093f4d33aed3915519837d2da2c3fb618107bf1ec730', '[\"*\"]', '2025-07-12 10:58:30', NULL, '2025-07-12 10:58:21', '2025-07-12 10:58:30'),
+(571, 'App\\Models\\User', 1, 'api-token', '08a912bbe138d988133af51073634f0ae7e0395aa43356b6a8b570c47d315a60', '[\"*\"]', '2025-07-12 11:03:49', NULL, '2025-07-12 11:00:54', '2025-07-12 11:03:49'),
+(572, 'App\\Models\\User', 2, 'api-token', '715088ce7edc38f781e5049a40d58d1d7bc1af907ece43af2f22032c07d6ae84', '[\"*\"]', '2025-07-12 11:04:10', NULL, '2025-07-12 11:04:05', '2025-07-12 11:04:10'),
+(573, 'App\\Models\\User', 2, 'api-token', '204170b103bd2f1a1711e2c4aafb58d9f246168e7701c609fba2123fb22511de', '[\"*\"]', '2025-07-12 11:05:27', NULL, '2025-07-12 11:05:22', '2025-07-12 11:05:27'),
+(574, 'App\\Models\\User', 1, 'api-token', '7155f5c8dafc0ea40c571f4efa0a0ac966adada9ec0cd55c2a3254f9b7217e20', '[\"*\"]', '2025-07-12 11:08:37', NULL, '2025-07-12 11:05:52', '2025-07-12 11:08:37'),
+(575, 'App\\Models\\User', 1, 'api-token', 'b303b10c72a82328a0855ec0542aeb2c96c9591d19375aa2007237526f66c175', '[\"*\"]', '2025-07-12 11:10:28', NULL, '2025-07-12 11:10:19', '2025-07-12 11:10:28'),
+(576, 'App\\Models\\User', 2, 'api-token', '5e210f251361a9f3f571e65e71b18f4555c2d5d5e77cbf9e5068947635261077', '[\"*\"]', '2025-07-12 11:11:09', NULL, '2025-07-12 11:10:46', '2025-07-12 11:11:09'),
+(577, 'App\\Models\\User', 1, 'api-token', '8a58a83a98f8eb00b8d6bba3c3437ec94d734c420c42468aca930ec27ef448aa', '[\"*\"]', '2025-07-12 11:19:51', NULL, '2025-07-12 11:19:48', '2025-07-12 11:19:51'),
+(578, 'App\\Models\\User', 1, 'api-token', '103e0df312cc2cc22074c470a1db5f8bc0bb25d0f6c3687d50f51e8891a37ac8', '[\"*\"]', '2025-07-12 11:22:10', NULL, '2025-07-12 11:22:08', '2025-07-12 11:22:10'),
+(579, 'App\\Models\\User', 1, 'api-token', 'e500de2342252b219a7c784ac8eae6dd4ca0319e869c8bb9cd0a85d7cf282643', '[\"*\"]', '2025-07-12 11:40:10', NULL, '2025-07-12 11:40:01', '2025-07-12 11:40:10'),
+(580, 'App\\Models\\User', 1, 'api-token', 'e57e5002bd460f9da8a7b4741b69ce4cf921130246007eadfe78af18506e3d13', '[\"*\"]', '2025-07-12 11:47:01', NULL, '2025-07-12 11:46:44', '2025-07-12 11:47:01'),
+(581, 'App\\Models\\User', 1, 'api-token', 'b4397e3f299ea2a2f2c557dc0fbdd80fcdb5ba8b3364a0f64235edbfeed15511', '[\"*\"]', '2025-07-12 11:51:13', NULL, '2025-07-12 11:51:04', '2025-07-12 11:51:13'),
+(582, 'App\\Models\\User', 1, 'api-token', 'f65fe30dcc55d7a73ae9156b4b7332ef449f881098766a0900d125c9d5f53de3', '[\"*\"]', '2025-07-12 12:00:02', NULL, '2025-07-12 11:57:43', '2025-07-12 12:00:02'),
+(583, 'App\\Models\\User', 1, 'api-token', '34e3f1f5baf77bea9ad47b9b52de7e8b71e030252b7bdbf11e9d093a4bf48635', '[\"*\"]', '2025-07-12 12:00:40', NULL, '2025-07-12 12:00:31', '2025-07-12 12:00:40'),
+(584, 'App\\Models\\User', 1, 'api-token', '64ab18874a53d8df4296106a32fb885d1ee0587a62410530569e09f0282aca1c', '[\"*\"]', '2025-07-12 12:08:06', NULL, '2025-07-12 12:07:44', '2025-07-12 12:08:06'),
+(585, 'App\\Models\\User', 1, 'api-token', '95a19a7f4ec10eb562e00de65f22a1e8642d8834c3c8314a1318dbec63187418', '[\"*\"]', '2025-07-12 12:14:33', NULL, '2025-07-12 12:14:24', '2025-07-12 12:14:33'),
+(586, 'App\\Models\\User', 1, 'api-token', '19fbf1921431e2d9ba74c198174bdf48227e19ddcbd1c4a580dc4049ed51095a', '[\"*\"]', '2025-07-12 12:29:15', NULL, '2025-07-12 12:27:12', '2025-07-12 12:29:15'),
+(587, 'App\\Models\\User', 1, 'api-token', 'b2eb97ed2f8e2607dbdf972073c037735b634a482701de648755430c9d713f02', '[\"*\"]', '2025-07-12 12:53:23', NULL, '2025-07-12 12:47:46', '2025-07-12 12:53:23'),
+(588, 'App\\Models\\User', 1, 'api-token', '97e03415cc8edad26d3b838914b20f3636dee577c77c530d1233e7109e7267d2', '[\"*\"]', '2025-07-12 12:56:45', NULL, '2025-07-12 12:56:39', '2025-07-12 12:56:45'),
+(589, 'App\\Models\\User', 1, 'api-token', '38d2731419657c19be3f6e71363cde276fa2aa00a75df98b70203e176c8b7f30', '[\"*\"]', '2025-07-12 13:00:57', NULL, '2025-07-12 13:00:23', '2025-07-12 13:00:57'),
+(590, 'App\\Models\\User', 1, 'api-token', 'a557e6ff016da670d2a7d1d69dd938d0d53e12c3552ec4e9d1565b9ff0807bd5', '[\"*\"]', '2025-07-12 13:03:53', NULL, '2025-07-12 13:03:32', '2025-07-12 13:03:53'),
+(591, 'App\\Models\\User', 1, 'api-token', '352f5c6325b3752532d2a5288e73a717050cce70f680edb8be261d4eef02ec14', '[\"*\"]', '2025-07-12 13:08:56', NULL, '2025-07-12 13:07:38', '2025-07-12 13:08:56'),
+(592, 'App\\Models\\User', 1, 'api-token', '637fbf96e959db3285f120e7df663731ce9a49175932b958dd7cc52158951c47', '[\"*\"]', '2025-07-12 13:11:17', NULL, '2025-07-12 13:10:57', '2025-07-12 13:11:17'),
+(593, 'App\\Models\\User', 1, 'api-token', '36304c39d9b4216e7aa9045f09fdfb6c6948de3b2e2463b8e99bdda657f5fe1f', '[\"*\"]', '2025-07-12 13:20:09', NULL, '2025-07-12 13:15:35', '2025-07-12 13:20:09'),
+(594, 'App\\Models\\User', 1, 'api-token', 'ddc77312b90ed2b66ca10f8dd6f26202069c620b728c2daa1f13a49f378f5689', '[\"*\"]', '2025-07-12 13:22:03', NULL, '2025-07-12 13:21:37', '2025-07-12 13:22:03'),
+(595, 'App\\Models\\User', 1, 'api-token', 'da1a0e58b306a7f5123d3d900b588866398e278ab8b727cbb892acd17750379d', '[\"*\"]', '2025-07-12 13:25:45', NULL, '2025-07-12 13:25:23', '2025-07-12 13:25:45'),
+(596, 'App\\Models\\User', 1, 'api-token', 'd3afe4f5824efaa07ed7d744c0c5d84593e520711cfca0ce72a5a22677ddc82c', '[\"*\"]', '2025-07-12 13:32:09', NULL, '2025-07-12 13:31:43', '2025-07-12 13:32:09'),
+(597, 'App\\Models\\User', 1, 'api-token', 'f092eea03b2dc1526c9714c51b269fc111558cf7b784250c9d60e21c3047e7b6', '[\"*\"]', '2025-07-12 13:39:35', NULL, '2025-07-12 13:38:56', '2025-07-12 13:39:35'),
+(598, 'App\\Models\\User', 2, 'api-token', '5abad5741b29c47f8e32a25e01225b98b90b05bef814032267134e8a8f1bebcc', '[\"*\"]', '2025-07-12 14:08:39', NULL, '2025-07-12 14:07:55', '2025-07-12 14:08:39'),
+(599, 'App\\Models\\User', 2, 'api-token', '0e74ee0742dd9a7b776138e84ddb112043f7bde92e93265dac613e357e305c64', '[\"*\"]', '2025-07-12 14:30:10', NULL, '2025-07-12 14:30:02', '2025-07-12 14:30:10'),
+(600, 'App\\Models\\User', 2, 'api-token', 'a6b31ad294d7daba2dc1c990475fc5d37da20c21c5a905d2d26708ca607174f3', '[\"*\"]', '2025-07-12 14:43:52', NULL, '2025-07-12 14:40:04', '2025-07-12 14:43:52'),
+(601, 'App\\Models\\User', 2, 'api-token', 'ce73ac7bb62bbb4a48b3c5beab79a1b479af1483edf714bcd03603a1a00e8902', '[\"*\"]', '2025-07-12 14:48:26', NULL, '2025-07-12 14:48:08', '2025-07-12 14:48:26'),
+(602, 'App\\Models\\User', 2, 'api-token', '609a93d50b099073eadfeaf2df2ee5a91f0d16264a00b1da3f62e619f2e41acb', '[\"*\"]', '2025-07-12 14:50:25', NULL, '2025-07-12 14:50:23', '2025-07-12 14:50:25'),
+(603, 'App\\Models\\User', 2, 'api-token', '3ac1f257c6021076da8f9ddc4fd640c53a33b7b7a7ae112fafb09ab9c9d04356', '[\"*\"]', '2025-07-12 14:51:26', NULL, '2025-07-12 14:51:21', '2025-07-12 14:51:26'),
+(604, 'App\\Models\\User', 2, 'api-token', 'cddf61019b21addcf452d5ee5b54df9c2bf0362e688a7f87346f93d91b9c4a5a', '[\"*\"]', '2025-07-12 14:53:01', NULL, '2025-07-12 14:52:59', '2025-07-12 14:53:01'),
+(605, 'App\\Models\\User', 1, 'api-token', 'c00d296a2441641f0eeec3d5806a86089ea663109dc1459fe675048518ec8222', '[\"*\"]', '2025-07-13 01:28:17', NULL, '2025-07-13 01:27:40', '2025-07-13 01:28:17'),
+(606, 'App\\Models\\User', 1, 'api-token', 'fbf4853963c31d5b91d707ee5bcfb94cfb54775eaa048670c812fe4b7caa24b8', '[\"*\"]', '2025-07-13 01:35:04', NULL, '2025-07-13 01:35:02', '2025-07-13 01:35:04'),
+(607, 'App\\Models\\User', 1, 'api-token', '07abe3cb650480b7a9faf36441d94885833a83106aa58b62a83ca5c424f78014', '[\"*\"]', '2025-07-13 01:38:24', NULL, '2025-07-13 01:38:22', '2025-07-13 01:38:24'),
+(608, 'App\\Models\\User', 1, 'api-token', 'f44e55f56ef750cd4b3246fb05c455f7d110363feb051aa716f4217e5d72cd0f', '[\"*\"]', '2025-07-13 01:59:16', NULL, '2025-07-13 01:49:18', '2025-07-13 01:59:16'),
+(609, 'App\\Models\\User', 2, 'api-token', 'f887d31bc70aaaca69d320d7b697d25806ea783a4ec37bf3cda5cf6573967eb7', '[\"*\"]', '2025-07-13 02:11:15', NULL, '2025-07-13 02:11:13', '2025-07-13 02:11:15'),
+(610, 'App\\Models\\User', 1, 'api-token', 'e8d92cfb0a2cdaa596ad19ae7122f08d4fb31b19d9a7b8bfa9f03f6a31317f8e', '[\"*\"]', '2025-07-13 02:16:19', NULL, '2025-07-13 02:16:17', '2025-07-13 02:16:19'),
+(611, 'App\\Models\\User', 2, 'api-token', 'd8e528a9aa5688130f43372d9c2c206da4eb38addbfd02836d8e327c31091add', '[\"*\"]', '2025-07-13 02:24:19', NULL, '2025-07-13 02:24:14', '2025-07-13 02:24:19'),
+(612, 'App\\Models\\User', 1, 'api-token', '668c5a0bee9b27d78e4b0541930fcc6b98b3141c1dd5c8c54277be062d23bc8e', '[\"*\"]', '2025-07-13 04:40:45', NULL, '2025-07-13 04:39:10', '2025-07-13 04:40:45'),
+(613, 'App\\Models\\User', 2, 'api-token', '5f5f10ef4da9719e5303095865387600bcad57540d6aebfe558a4376815224ff', '[\"*\"]', '2025-07-13 04:41:33', NULL, '2025-07-13 04:41:01', '2025-07-13 04:41:33'),
+(614, 'App\\Models\\User', 1, 'api-token', 'e4bad19623e5cbc899371adfe31236a19cbfc5bbf862e56f4fd005758b2809ec', '[\"*\"]', '2025-07-13 09:37:27', NULL, '2025-07-13 09:36:33', '2025-07-13 09:37:27'),
+(615, 'App\\Models\\User', 2, 'api-token', '015d24d80af972892d21d93811a86e6243b7c090fd58c3574e11a976c083cbf0', '[\"*\"]', '2025-07-13 09:39:46', NULL, '2025-07-13 09:38:57', '2025-07-13 09:39:46'),
+(616, 'App\\Models\\User', 1, 'api-token', 'd230695339bc4c7ccecefbea5d9a03595266c707a5ee83471b10e8c204ba516a', '[\"*\"]', '2025-07-13 09:43:03', NULL, '2025-07-13 09:41:08', '2025-07-13 09:43:03'),
+(617, 'App\\Models\\User', 4, 'api-token', 'dd5a125256b5c95a645dc656ae7507bebcc64f944e158873d92e2c0dd54173d7', '[\"*\"]', '2025-07-13 10:09:42', NULL, '2025-07-13 09:52:27', '2025-07-13 10:09:42'),
+(618, 'App\\Models\\User', 1, 'api-token', '60249a11ce56f3d255c539cd4302d4ec668e6f4e0ac70809d53f67737ee68dd6', '[\"*\"]', '2025-07-13 12:09:37', NULL, '2025-07-13 10:55:00', '2025-07-13 12:09:37'),
+(619, 'App\\Models\\User', 1, 'api-token', '561b49bd606c22d943a2dc7e135b9c770e3cf4470b52e98b39aa661fd547be2a', '[\"*\"]', '2025-07-13 12:56:47', NULL, '2025-07-13 12:11:06', '2025-07-13 12:56:47'),
+(620, 'App\\Models\\User', 4, 'api-token', 'e4afeb0695f8ef65e0268cbbe33d6ed74186cfbec9c2693c7a45600ae741cc9f', '[\"*\"]', '2025-07-13 12:57:11', NULL, '2025-07-13 12:57:04', '2025-07-13 12:57:11'),
+(621, 'App\\Models\\User', 4, 'api-token', '7dc1137c5fe9a80280cee9c36e28973df458b9142f025c2958b40d4728f6987b', '[\"*\"]', '2025-07-13 12:57:33', NULL, '2025-07-13 12:57:28', '2025-07-13 12:57:33'),
+(622, 'App\\Models\\User', 4, 'api-token', 'f4012dc702ca82b899e045b440d2e0cecb5bb278efa62791eb4b83fc4818a5a5', '[\"*\"]', '2025-07-13 13:08:56', NULL, '2025-07-13 13:00:20', '2025-07-13 13:08:56'),
+(623, 'App\\Models\\User', 5, 'api-token', '28a0c1bc87807f54c009eef6437fef1a46221e6777c1e6a3ad1e64441f7b1491', '[\"*\"]', '2025-07-13 13:28:17', NULL, '2025-07-13 13:16:56', '2025-07-13 13:28:17'),
+(624, 'App\\Models\\User', 4, 'api-token', 'c8d3febcbeb91c698b1b04b0e0de4ad03b148ff29db432c26d06410fcd7df4a5', '[\"*\"]', '2025-07-13 13:29:40', NULL, '2025-07-13 13:29:18', '2025-07-13 13:29:40'),
+(625, 'App\\Models\\User', 5, 'api-token', '3c8b28e4c5e96663a731a3e3e56a66535e25dd2a2466f744b1eb404b3e63fa1b', '[\"*\"]', '2025-07-13 13:32:27', NULL, '2025-07-13 13:29:58', '2025-07-13 13:32:27'),
+(626, 'App\\Models\\User', 4, 'api-token', '0ceb6a8c2f83d52e2bac734cc2928f69a342f6bd634b681e7845dee938660279', '[\"*\"]', '2025-07-13 13:32:51', NULL, '2025-07-13 13:32:42', '2025-07-13 13:32:51'),
+(627, 'App\\Models\\User', 2, 'api-token', '1afa73653cc6c33b7b57d862a988a6a06b0f2fb20a45da7aaf2e8fd7e4199fbb', '[\"*\"]', '2025-07-13 13:34:14', NULL, '2025-07-13 13:33:08', '2025-07-13 13:34:14'),
+(628, 'App\\Models\\User', 1, 'api-token', '892c4bc6238afa1d19e3c82b21a0db8189d44df999b189f62c51ae12f0b860d2', '[\"*\"]', '2025-07-13 14:03:20', NULL, '2025-07-13 14:00:06', '2025-07-13 14:03:20'),
+(629, 'App\\Models\\User', 1, 'api-token', '20b05681e021c2054a0ccf352b4808d20afacceaaeee66a2872cf8a8e0c6c4ad', '[\"*\"]', '2025-07-14 03:05:07', NULL, '2025-07-14 02:28:08', '2025-07-14 03:05:07'),
+(630, 'App\\Models\\User', 5, 'api-token', 'c6b738c8f060d609139345d6236cbe57443f2032b931a090eff65e891eb1d8f3', '[\"*\"]', '2025-07-14 03:07:39', NULL, '2025-07-14 03:05:27', '2025-07-14 03:07:39'),
+(631, 'App\\Models\\User', 2, 'api-token', 'fe77e9e2d8657c995667460e4525e769d9956bc6334f43ad53d54ee16d2775aa', '[\"*\"]', '2025-07-16 02:35:39', NULL, '2025-07-16 02:30:27', '2025-07-16 02:35:39'),
+(632, 'App\\Models\\User', 1, 'api-token', '918690c2d46238f086ea7cba35b01a40883cb37cc6a245fdbf9765f00a13df38', '[\"*\"]', '2025-07-16 03:44:36', NULL, '2025-07-16 02:36:09', '2025-07-16 03:44:36'),
+(633, 'App\\Models\\User', 1, 'api-token', '20acfdb49fac0d28dc1a33ee6b2412b3917e27db0622f80fabd7acb98a8de6f8', '[\"*\"]', '2025-07-16 04:13:55', NULL, '2025-07-16 03:49:58', '2025-07-16 04:13:55'),
+(634, 'App\\Models\\User', 5, 'api-token', '8c9201ca8b3fb308128f4f29e6f4486c1be69b9b55f48a39d006d1350a80164e', '[\"*\"]', '2025-07-16 04:51:10', NULL, '2025-07-16 04:14:10', '2025-07-16 04:51:10'),
+(635, 'App\\Models\\User', 5, 'api-token', '9acd903263f8001f48f9fa238c0fb21c5de623ae78e78c5d2288809eeed95cbc', '[\"*\"]', '2025-07-16 04:59:48', NULL, '2025-07-16 04:54:03', '2025-07-16 04:59:48'),
+(636, 'App\\Models\\User', 4, 'api-token', '1463d6324a0da0ea9fdbf6465e79651ca072e15e2b5aaba3e076f41b012a2440', '[\"*\"]', '2025-07-17 01:07:51', NULL, '2025-07-17 01:07:33', '2025-07-17 01:07:51'),
+(637, 'App\\Models\\User', 4, 'api-token', 'dd953e5a179b58a990688befa2eab531f8b4a1d25d74425b5c26b91d82da5603', '[\"*\"]', '2025-07-17 01:25:22', NULL, '2025-07-17 01:17:38', '2025-07-17 01:25:22'),
+(638, 'App\\Models\\User', 4, 'api-token', '3df8131c10fe5085ff635ece2cba8205638e015f6053bd51fcb0869757112557', '[\"*\"]', '2025-07-17 01:33:19', NULL, '2025-07-17 01:32:34', '2025-07-17 01:33:19'),
+(639, 'App\\Models\\User', 5, 'api-token', '8a6714c07bdd5d715283b1802f6c5ef5df2cfe6039b2c17177417055b6871d2b', '[\"*\"]', '2025-07-17 01:34:54', NULL, '2025-07-17 01:34:04', '2025-07-17 01:34:54'),
+(640, 'App\\Models\\User', 1, 'api-token', 'ffda88bb2fe84822e50720afae6e4c91990b4258bff860f958c3309f4b74574f', '[\"*\"]', '2025-07-17 01:36:11', NULL, '2025-07-17 01:36:00', '2025-07-17 01:36:11'),
+(641, 'App\\Models\\User', 4, 'api-token', 'e47783aca83d8ea7d1f0721ad6c21b377a6e8ec32ea3239efa3296896179354b', '[\"*\"]', '2025-07-17 01:36:35', NULL, '2025-07-17 01:36:31', '2025-07-17 01:36:35'),
+(642, 'App\\Models\\User', 5, 'api-token', '087370058035a453d564bfe3c412998a92450bd83901059db2880253f27b5b95', '[\"*\"]', '2025-07-17 01:46:51', NULL, '2025-07-17 01:37:21', '2025-07-17 01:46:51'),
+(643, 'App\\Models\\User', 4, 'api-token', 'bbe799d093c4b4423df72dbd323be7dd7116f30cd3b9791f9c89ea0b952df916', '[\"*\"]', '2025-07-17 01:59:51', NULL, '2025-07-17 01:47:11', '2025-07-17 01:59:51'),
+(644, 'App\\Models\\User', 1, 'api-token', '89887508ed71b0a8d8c9991729dc172f6e513c007eaa0309820cefc058993812', '[\"*\"]', '2025-07-17 02:46:15', NULL, '2025-07-17 02:34:13', '2025-07-17 02:46:15');
 
 -- --------------------------------------------------------
 
@@ -795,9 +930,22 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('9K9syQ0EtKNtRdugSTpHkmLUN4MaTowoWzJhnQgJ', 2, '192.168.1.3', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiM1hDbndQTm9DQXJJdkc5bFlRSXZ5eDdRYkNNaDdOVVlicXRNSzFHdyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDQ6Imh0dHA6Ly8xOTIuMTY4LjEuMzo4MDAwL2FwcHJvdmVyL3N0b2stYmFyYW5nIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mjt9', 1751466405),
-('MivzrBxs0aocljLHPx2ogVtYfeDRI9DtxbEK0eHW', NULL, '192.168.1.3', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiYkpmZFh3R1hlVVJhVnd0VkRvRXVGcWs0V2E2cG5uVnJxNldaaTVDeiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xOTIuMTY4LjEuMzo4MDAwL2xvZ2luIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1751464060),
-('x8Lj6OlK1ObTB105Hs5FFmrjjRYnguaV0pJRZVyP', 2, '192.168.1.3', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiMkNSTmRmVkdpS2V2THUwUzNnSWY5YWNzcXBhVUJTV0R4eXZvc2N4eCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDQ6Imh0dHA6Ly8xOTIuMTY4LjEuMzo4MDAwL2FwcHJvdmVyL3N0b2stYmFyYW5nIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mjt9', 1751462910);
+('5F4Wxd0RAvuNf6cMeWZj0g4JPPuQx4i9ZIjw4uUj', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiSE45b253UGVJczF1YXdDdkEyWEpLODI3N2ZDN29vaE9tN2s4UndFUSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwaS9zdWItY2F0ZWdvcmllcy9ieS1jYXRlZ29yeS8xMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1752636370),
+('atZuG2zdpBxWjdjACxwnG3upGIPhnn4kn1xycFtg', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoibkJtWjQ1ZXdRd05KTlpPTFZNZWZHRWFYQ2Y3OTVIdnQ4UjNKUTNUViI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2xvZ2luIjt9fQ==', 1752641978),
+('DU7Ug5WdzN566CY4wUPyuFuOPz4lC9EXaAfwWZ7z', 2, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiYUlnNHZsSDNlSkxSUTVzVzRjNEgxYzRrSGFVemFoeUdoMmdZUWJaNyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mzk6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwcHJvdmVyL2V4cG9ydCI7fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjI7fQ==', 1752552497),
+('EDfSpaOXbUi47ypAOlN2kZcZfTYhjJxmrIb1ZeyC', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiaUVqeVJ1NjVtR3dCTnhYa05reHpjdDR3YkNnRHB4OWdrcU9DdkI2ZyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwaS9zdWItY2F0ZWdvcmllcy9ieS1jYXRlZ29yeS8xMSI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1752634133),
+('f6E7cjcHXnNacec6NKFfcZc9frlCh6IfLl4w0NlT', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiZUxnMzBwcnRlUE1ES1pkQkRta0tna3hIWFhZU1p2VEQ1SzNNa2tqOSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2xvZ2luIjt9fQ==', 1752554345),
+('gMVOGzgdNU81FPnbUOdDyUi88j1J86QzcwIWHurL', 2, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoicXZMMzFxS0VkWnRGck1TVlR1TklnTTl1ZDJGRXFjMVZwRHZ2a0lmdyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDY6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwcHJvdmVyL3Jpd2F5YXQtbWFzdWsiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO30=', 1752629783),
+('gY2BunSojom7P8Tqvxl9SXwI9Rc383ppRelVvwQN', 2, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiNzV0Y1k4VngzbGFybnRnOXZxdXhHdW1JdkQ0WWJSM1FxdHhNakdIUiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mzk6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwcHJvdmVyL2V4cG9ydCI7fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjI7fQ==', 1752554360),
+('J6oqjWqI641nfcQSqj26JE0Columj7mNoXM27hkk', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiWTY3VkpWZ1FjVXprTmRpUTlEbTJFUlFCMklRNlhxdWRET0YxS0NWWCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwaS9zdWItY2F0ZWdvcmllcy9ieS1jYXRlZ29yeS8xNyI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1752635029),
+('KIolqx4k3UVGwvK7GfxrYWsP3vOGn5ITXWFONDvN', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiSnRncDRGQ0hHQ3ltQlNDaFVldlVUd0lMUVAyZmhRZVkwMjZLdFQxRiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NTY6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwaS9zdWItY2F0ZWdvcmllcy9ieS1jYXRlZ29yeS85Ijt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1752636123),
+('RUELSTQ8Tya8oEOPb8XUiu6C16GKrNHGXlvSg0Pg', 2, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiQklqWWNCWkZNWXA4ZHNoWnk4NHBqc2pSTXdQcGRid2hRbnI4T1lWbSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NDQ6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwcHJvdmVyL3N0b2stYmFyYW5nIjt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mjt9', 1752633444),
+('TzCMI9ynVAM5ffmlWDXTiPjsUfaX9ASNWXpoxC3c', 2, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiUG5DU3FLODBLSFR2Q2xLTFRVMjNnaFNWa1dyeVhoNDFnRWxUM3ZZMyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjM6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwIjt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mjt9', 1752549116),
+('XhGgN47snhcCggsGO147TpVgRKnIDuzZfZc04vFK', 2, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiNnlIWFNSVjdkTnViUzl0WUlDQjQxTTNmNElGazM4M1hnSFB2anJUTCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mzk6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwcHJvdmVyL2V4cG9ydCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjI7fQ==', 1752551078),
+('YCdzD5DWQhZziOhOtWhl6OO2z5GjP17aNEoyoOmt', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoieUN0SXNMZ2NZWktZVWhDUmc3OGxKbjI1TEg3MWc3RWthdkxHVlk2eiI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NTY6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwaS9zdWItY2F0ZWdvcmllcy9ieS1jYXRlZ29yeS85Ijt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1752636365),
+('yDn2PdbJaVCTVWMxLQEYhISntLvKe4EoDIkNqkgS', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoibW40YVN0VU1HSXNTTndtUjhOeUNUT2JoaEJ3VmJ4c0xXUVd3dWlqcSI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwaS9zdWItY2F0ZWdvcmllcy9ieS1jYXRlZ29yeS8xNyI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1752636368),
+('yEoKHeeC21OSXUOWKSmi1k6Rqrt7i1J3WAiyUVVF', NULL, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiOTBPckM4dUs2RVFFZnJzakgyS29VaUZXVFJXMkxidzVwVk1JcmlLUCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwaS9zdWItY2F0ZWdvcmllcy9ieS1jYXRlZ29yeS8xNyI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1752634136),
+('ytH6DEa9h3J2WP76Kp64bdH1rBt1ZrjKvkEQsT96', 2, '192.168.1.6', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiMHBYb0xSSFVyOHFOMHVNN25yaUxDelk0TW1oWDh2Ykk3UUliaTJidSI7czozOiJ1cmwiO2E6MTp7czo4OiJpbnRlbmRlZCI7czozOToiaHR0cDovLzE5Mi4xNjguMS42OjgwMDAvYXBwcm92ZXIvZXhwb3J0Ijt9czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mzk6Imh0dHA6Ly8xOTIuMTY4LjEuNjo4MDAwL2FwcHJvdmVyL2V4cG9ydCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjI7fQ==', 1752551227);
 
 -- --------------------------------------------------------
 
@@ -815,48 +963,61 @@ CREATE TABLE `stock_requests` (
   `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `description` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `approved_by` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `stock_requests`
 --
 
-INSERT INTO `stock_requests` (`id`, `item_id`, `user_id`, `type`, `quantity`, `unit`, `status`, `description`, `created_at`, `updated_at`) VALUES
-(1, 22, 1, 'increase', 100, 'Box', 'approved', NULL, '2025-06-25 20:32:03', '2025-06-26 02:55:18'),
-(3, 22, 1, 'decrease', 15, 'Box', 'approved', NULL, '2025-06-26 19:20:23', '2025-06-26 19:23:54'),
-(4, 22, 1, 'decrease', 5, 'Box', 'approved', NULL, '2025-06-26 19:25:01', '2025-06-28 06:59:28'),
-(6, 22, 1, 'increase', 15, 'Box', 'approved', 'Mencoba', '2025-06-27 05:38:59', '2025-06-27 05:40:38'),
-(10, 22, 1, 'increase', 10, 'Box', 'approved', 'Percobaan', '2025-06-28 06:19:09', '2025-06-29 20:37:04'),
-(12, 25, 2, 'increase', 10, 'Box', 'approved', 'Barang diterima dari supplier A', '2025-06-28 21:27:06', '2025-06-28 21:27:06'),
-(13, 26, 2, 'increase', 50, 'Pcs', 'approved', 'Persediaan tambahan', '2025-06-28 21:27:06', '2025-06-28 21:27:06'),
-(16, 28, 1, 'increase', 50, 'Box', 'approved', 'Mencoba dashboard approver web', '2025-06-29 17:53:05', '2025-06-29 20:32:52'),
-(18, 29, 1, 'increase', 150, 'Pcs', 'approved', 'Mencoba lagi', '2025-06-29 20:48:00', '2025-07-02 05:35:21'),
-(19, 22, 1, 'decrease', 15, 'Box', 'approved', 'Mencoba Mutasi Keluar', '2025-07-02 03:21:58', '2025-07-02 05:16:05'),
-(20, 28, 1, 'decrease', 15, 'Box', 'approved', 'Mencoba Mutasi Keluar Lagi', '2025-07-02 03:30:44', '2025-07-02 05:24:42'),
-(21, 30, 1, 'increase', 150, 'Pcs', 'approved', 'Mencoba Mutasi Masuk', '2025-07-02 03:34:54', '2025-07-02 03:35:23'),
-(22, 30, 1, 'decrease', 50, 'Pcs', 'rejected', 'Mencoba Lagi', '2025-07-02 05:41:06', '2025-07-02 05:42:22'),
-(23, 25, 1, 'increase', 10, 'Box', 'approved', 'Mencoba Mutasi Masuk', '2025-07-02 06:17:34', '2025-07-02 06:19:07'),
-(24, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:22:45', '2025-07-02 06:23:19'),
-(25, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:28:10', '2025-07-02 06:28:30'),
-(26, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:45:35', '2025-07-02 06:45:44'),
-(27, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:48:59', '2025-07-02 06:49:10'),
-(28, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:49:45', '2025-07-02 06:49:53'),
-(29, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:53:04', '2025-07-02 06:53:13'),
-(30, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:54:37', '2025-07-02 06:54:45'),
-(31, 30, 1, 'decrease', 50, 'Pcs', 'approved', 'Mencoba Terakhir', '2025-07-02 06:58:41', '2025-07-02 06:59:09'),
-(32, 29, 1, 'decrease', 15, 'Pcs', 'approved', 'Mencoba Lagi', '2025-07-02 07:06:04', '2025-07-02 07:06:30'),
-(33, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:12:11', '2025-07-02 07:12:24'),
-(34, 29, 1, 'decrease', 15, 'Pcs', 'rejected', 'Mencoba', '2025-07-02 07:17:03', '2025-07-02 07:18:11'),
-(35, 25, 1, 'increase', 15, 'Box', 'approved', 'Mencoba Lagi', '2025-07-02 07:17:26', '2025-07-02 07:17:59'),
-(36, 28, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:19:00', '2025-07-02 07:19:09'),
-(37, 25, 1, 'increase', 5, 'Box', 'approved', 'Coba Lagi', '2025-07-02 07:20:42', '2025-07-02 07:21:12'),
-(38, 28, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:22:26', '2025-07-02 07:23:38'),
-(39, 29, 1, 'decrease', 10, 'Pcs', 'approved', 'Coba Lagi', '2025-07-02 07:22:53', '2025-07-02 07:23:21'),
-(40, 30, 1, 'decrease', 10, 'Pcs', 'approved', 'Coba Terus', '2025-07-02 07:26:02', '2025-07-02 07:26:12'),
-(41, 28, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:26:35', '2025-07-02 07:26:45'),
-(42, 28, 1, 'increase', 7, 'Box', 'rejected', 'Coba Lagi', '2025-07-02 07:27:13', '2025-07-02 07:27:22'),
-(43, 29, 1, 'decrease', 5, 'Pcs', 'approved', 'Coba Terakhir', '2025-07-02 07:52:50', '2025-07-02 07:53:24');
+INSERT INTO `stock_requests` (`id`, `item_id`, `user_id`, `type`, `quantity`, `unit`, `status`, `description`, `created_at`, `updated_at`, `approved_by`) VALUES
+(1, 22, 1, 'increase', 100, 'Box', 'approved', NULL, '2025-06-25 20:32:03', '2025-06-26 02:55:18', NULL),
+(3, 22, 1, 'decrease', 15, 'Box', 'approved', NULL, '2025-06-26 19:20:23', '2025-06-26 19:23:54', NULL),
+(4, 22, 1, 'decrease', 5, 'Box', 'approved', NULL, '2025-06-26 19:25:01', '2025-06-28 06:59:28', NULL),
+(6, 22, 1, 'increase', 15, 'Box', 'approved', 'Mencoba', '2025-06-27 05:38:59', '2025-06-27 05:40:38', NULL),
+(10, 22, 1, 'increase', 10, 'Box', 'approved', 'Percobaan', '2025-06-28 06:19:09', '2025-06-29 20:37:04', NULL),
+(12, 25, 2, 'increase', 10, 'Box', 'approved', 'Barang diterima dari supplier A', '2025-06-28 21:27:06', '2025-06-28 21:27:06', NULL),
+(13, 26, 2, 'increase', 50, 'Pcs', 'approved', 'Persediaan tambahan', '2025-06-28 21:27:06', '2025-06-28 21:27:06', NULL),
+(16, 28, 1, 'increase', 50, 'Box', 'approved', 'Mencoba dashboard approver web', '2025-06-29 17:53:05', '2025-06-29 20:32:52', NULL),
+(18, 29, 1, 'increase', 150, 'Pcs', 'approved', 'Mencoba lagi', '2025-06-29 20:48:00', '2025-07-02 05:35:21', NULL),
+(19, 22, 1, 'decrease', 15, 'Box', 'approved', 'Mencoba Mutasi Keluar', '2025-07-02 03:21:58', '2025-07-02 05:16:05', NULL),
+(20, 28, 1, 'decrease', 15, 'Box', 'approved', 'Mencoba Mutasi Keluar Lagi', '2025-07-02 03:30:44', '2025-07-02 05:24:42', NULL),
+(21, 30, 1, 'increase', 150, 'Pcs', 'approved', 'Mencoba Mutasi Masuk', '2025-07-02 03:34:54', '2025-07-02 03:35:23', NULL),
+(22, 30, 1, 'decrease', 50, 'Pcs', 'rejected', 'Mencoba Lagi', '2025-07-02 05:41:06', '2025-07-02 05:42:22', NULL),
+(23, 25, 1, 'increase', 10, 'Box', 'approved', 'Mencoba Mutasi Masuk', '2025-07-02 06:17:34', '2025-07-02 06:19:07', NULL),
+(24, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:22:45', '2025-07-02 06:23:19', NULL),
+(25, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:28:10', '2025-07-02 06:28:30', NULL),
+(26, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:45:35', '2025-07-02 06:45:44', NULL),
+(27, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:48:59', '2025-07-02 06:49:10', NULL),
+(28, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:49:45', '2025-07-02 06:49:53', NULL),
+(29, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:53:04', '2025-07-02 06:53:13', NULL),
+(30, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 06:54:37', '2025-07-02 06:54:45', NULL),
+(31, 30, 1, 'decrease', 50, 'Pcs', 'approved', 'Mencoba Terakhir', '2025-07-02 06:58:41', '2025-07-02 06:59:09', NULL),
+(32, 29, 1, 'decrease', 15, 'Pcs', 'approved', 'Mencoba Lagi', '2025-07-02 07:06:04', '2025-07-02 07:06:30', NULL),
+(33, 25, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:12:11', '2025-07-02 07:12:24', NULL),
+(34, 29, 1, 'decrease', 15, 'Pcs', 'rejected', 'Mencoba', '2025-07-02 07:17:03', '2025-07-02 07:18:11', NULL),
+(35, 25, 1, 'increase', 15, 'Box', 'approved', 'Mencoba Lagi', '2025-07-02 07:17:26', '2025-07-02 07:17:59', NULL),
+(36, 28, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:19:00', '2025-07-02 07:19:09', NULL),
+(37, 25, 1, 'increase', 5, 'Box', 'approved', 'Coba Lagi', '2025-07-02 07:20:42', '2025-07-02 07:21:12', NULL),
+(38, 28, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:22:26', '2025-07-02 07:23:38', NULL),
+(39, 29, 1, 'decrease', 10, 'Pcs', 'approved', 'Coba Lagi', '2025-07-02 07:22:53', '2025-07-02 07:23:21', NULL),
+(40, 30, 1, 'decrease', 10, 'Pcs', 'approved', 'Coba Terus', '2025-07-02 07:26:02', '2025-07-02 07:26:12', NULL),
+(41, 28, 1, 'delete', 1, 'Box', 'rejected', 'Permintaan penghapusan oleh Submitter', '2025-07-02 07:26:35', '2025-07-02 07:26:45', NULL),
+(42, 28, 1, 'increase', 7, 'Box', 'rejected', 'Coba Lagi', '2025-07-02 07:27:13', '2025-07-02 07:27:22', NULL),
+(43, 29, 1, 'decrease', 5, 'Pcs', 'approved', 'Coba Terakhir', '2025-07-02 07:52:50', '2025-07-02 07:53:24', NULL),
+(44, 31, 2, 'increase', 110, 'Pcs', 'approved', 'Mencoba Import Excel', '2025-07-03 03:17:08', '2025-07-03 03:17:08', NULL),
+(45, 32, 2, 'increase', 100, 'Pcs', 'approved', 'Mencoba Created Time', '2025-07-10 02:59:54', '2025-07-10 02:59:54', NULL),
+(46, 33, 2, 'increase', 100, 'Pcs', 'approved', 'Mencoba Created Time', '2025-07-10 10:06:45', '2025-07-10 10:06:45', NULL),
+(47, 22, 1, 'increase', 10, 'Box', 'approved', 'Mencoba', '2025-07-12 13:22:02', '2025-07-12 14:40:26', NULL),
+(48, 34, 2, 'increase', 110, 'Pcs', 'approved', 'Mencoba Terbaru', '2025-07-13 01:58:33', '2025-07-13 01:58:33', NULL),
+(49, 28, 1, 'increase', 15, 'Box', 'approved', 'Mencoba Terbaru', '2025-07-13 04:39:54', '2025-07-13 04:41:18', NULL),
+(50, 34, 1, 'decrease', 35, 'Pcs', 'approved', 'Mencoba Terbaru', '2025-07-13 04:40:24', '2025-07-13 04:41:25', NULL),
+(51, 25, 4, 'increase', 3, 'Box', 'approved', 'Mencoba Submitter 2', '2025-07-13 13:05:11', '2025-07-13 13:17:41', NULL),
+(52, 34, 4, 'decrease', 17, 'Pcs', 'approved', 'Mencoba Submitter 2 Lagi', '2025-07-13 13:08:55', '2025-07-13 13:18:01', NULL),
+(54, 25, 1, 'increase', 7, 'Box', 'rejected', 'Mencoba Fix', '2025-07-14 02:45:30', '2025-07-16 02:35:35', NULL),
+(55, 36, 1, 'increase', 10, 'box', 'approved', 'Mencoba Terakhir Lagi', '2025-07-16 03:05:11', '2025-07-16 04:28:35', NULL),
+(58, 33, 1, 'decrease', 35, 'Pcs', 'pending', 'Mencoba Terakhir', '2025-07-17 02:36:20', '2025-07-17 02:36:20', NULL);
 
 -- --------------------------------------------------------
 
@@ -888,7 +1049,9 @@ INSERT INTO `sub_categories` (`id`, `name`, `category_id`, `created_at`, `update
 (9, 'Herbisida', 12, '2025-06-27 04:11:56', '2025-06-27 04:11:56'),
 (10, 'Insektisida', 12, '2025-06-27 04:12:35', '2025-06-27 04:12:35'),
 (11, 'Fungisida', 12, '2025-06-27 04:13:01', '2025-06-27 04:13:01'),
-(12, 'Lain-lain', 12, '2025-06-27 04:13:34', '2025-06-27 04:13:34');
+(12, 'Lain-lain', 12, '2025-06-27 04:13:34', '2025-06-27 04:13:34'),
+(18, 'Herbisida', 17, '2025-07-13 13:30:09', '2025-07-13 13:30:09'),
+(20, 'Herbisida', 17, '2025-07-13 13:33:17', '2025-07-13 13:33:17');
 
 -- --------------------------------------------------------
 
@@ -899,7 +1062,9 @@ INSERT INTO `sub_categories` (`id`, `name`, `category_id`, `created_at`, `update
 CREATE TABLE `sub_category_requests` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `category_id` bigint(20) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL,
+  `action` enum('add','delete') NOT NULL DEFAULT 'add',
+  `name` varchar(255) DEFAULT NULL,
+  `sub_category_id` bigint(20) UNSIGNED DEFAULT NULL,
   `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `requested_by` bigint(20) UNSIGNED DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -910,8 +1075,10 @@ CREATE TABLE `sub_category_requests` (
 -- Dumping data for table `sub_category_requests`
 --
 
-INSERT INTO `sub_category_requests` (`id`, `category_id`, `name`, `status`, `requested_by`, `created_at`, `updated_at`) VALUES
-(1, 11, 'Herbisida', 'approved', 1, '2025-06-27 07:11:30', '2025-06-27 07:15:25');
+INSERT INTO `sub_category_requests` (`id`, `category_id`, `action`, `name`, `sub_category_id`, `status`, `requested_by`, `created_at`, `updated_at`) VALUES
+(1, 11, 'add', 'Herbisida', NULL, 'approved', 1, '2025-06-27 07:11:30', '2025-06-27 07:15:25'),
+(6, 17, 'add', 'Herbisida', NULL, 'approved', 4, '2025-07-13 13:29:40', '2025-07-13 13:30:10'),
+(7, 17, 'add', 'Herbisida', NULL, 'approved', 4, '2025-07-13 13:32:51', '2025-07-13 13:33:17');
 
 -- --------------------------------------------------------
 
@@ -936,8 +1103,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `role`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Submitter 1', 'submitter@example.com', NULL, '$2y$12$HgbOEJIE39CDjEsReqGcUu.JIKOeZEglnO1lYYnv9MHTnTQf23cvm', 'Submitter', NULL, '2025-06-14 04:09:35', '2025-06-14 04:09:35'),
-(2, 'Approver 1', 'approver@example.com', NULL, '$2y$12$yTF1dXzAbqttg8Zv9RPTA..cfLPiQuJKLey7qVPNOmK8ot//9sMPC', 'Approver', NULL, '2025-06-14 04:09:48', '2025-06-14 04:09:48');
+(1, 'Submitter 1', 'submitter@example.com', NULL, '$2y$12$HgbOEJIE39CDjEsReqGcUu.JIKOeZEglnO1lYYnv9MHTnTQf23cvm', 'Submitter', NULL, '2025-06-14 04:09:35', '2025-07-13 09:41:08'),
+(2, 'Approver 1', 'approver@example.com', NULL, '$2y$12$yTF1dXzAbqttg8Zv9RPTA..cfLPiQuJKLey7qVPNOmK8ot//9sMPC', 'Approver', NULL, '2025-06-14 04:09:48', '2025-07-13 09:38:57'),
+(4, 'Submitter 2', 'submitter2@example.com', NULL, '$2y$12$wEuQop8qUK9q0ur2jhc0SO/PtCAyTxNwEQaTRzmieSJcKiqsoqLvu', 'Submitter', NULL, '2025-07-13 09:51:56', '2025-07-13 09:52:27'),
+(5, 'Approver 2', 'approver2@example.com', NULL, '$2y$12$zGT1PaYOFr7piC0HxykhFenu6FjCTTRenWOZs5A9XVAkiKko6ZEBS', 'Approver', NULL, '2025-07-13 13:15:39', '2025-07-13 13:15:39');
 
 --
 -- Indexes for dumped tables
@@ -961,6 +1130,12 @@ ALTER TABLE `cache_locks`
 ALTER TABLE `categories`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `categories_name_unique` (`name`);
+
+--
+-- Indexes for table `category_requests`
+--
+ALTER TABLE `category_requests`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `failed_jobs`
@@ -1026,7 +1201,8 @@ ALTER TABLE `sessions`
 ALTER TABLE `stock_requests`
   ADD PRIMARY KEY (`id`),
   ADD KEY `stock_requests_item_id_foreign` (`item_id`),
-  ADD KEY `stock_requests_user_id_foreign` (`user_id`);
+  ADD KEY `stock_requests_user_id_foreign` (`user_id`),
+  ADD KEY `stock_requests_approved_by_foreign` (`approved_by`);
 
 --
 -- Indexes for table `sub_categories`
@@ -1040,7 +1216,8 @@ ALTER TABLE `sub_categories`
 --
 ALTER TABLE `sub_category_requests`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `sub_category_requests_category_id_foreign` (`category_id`);
+  ADD KEY `sub_category_requests_category_id_foreign` (`category_id`),
+  ADD KEY `sub_category_requests_sub_category_id_foreign` (`sub_category_id`);
 
 --
 -- Indexes for table `users`
@@ -1057,7 +1234,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `category_requests`
+--
+ALTER TABLE `category_requests`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `failed_jobs`
@@ -1069,7 +1252,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `jobs`
@@ -1081,37 +1264,37 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=549;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=645;
 
 --
 -- AUTO_INCREMENT for table `stock_requests`
 --
 ALTER TABLE `stock_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `sub_categories`
 --
 ALTER TABLE `sub_categories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `sub_category_requests`
 --
 ALTER TABLE `sub_category_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
@@ -1129,6 +1312,7 @@ ALTER TABLE `items`
 -- Constraints for table `stock_requests`
 --
 ALTER TABLE `stock_requests`
+  ADD CONSTRAINT `stock_requests_approved_by_foreign` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `stock_requests_item_id_foreign` FOREIGN KEY (`item_id`) REFERENCES `items` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `stock_requests_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
@@ -1142,7 +1326,8 @@ ALTER TABLE `sub_categories`
 -- Constraints for table `sub_category_requests`
 --
 ALTER TABLE `sub_category_requests`
-  ADD CONSTRAINT `sub_category_requests_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `sub_category_requests_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `sub_category_requests_sub_category_id_foreign` FOREIGN KEY (`sub_category_id`) REFERENCES `sub_categories` (`id`) ON DELETE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
