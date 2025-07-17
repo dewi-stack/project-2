@@ -1,20 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:project_3/submitter/stock_barang_page.dart';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/api_service.dart';
 import 'category_page.dart';
 import 'export_page.dart';
 import 'riwayat_masuk_page.dart';
 import 'riwayat_keluar_page.dart';
+import 'stock_barang_page.dart';
 import '../screens/login_page.dart';
 
 class DashboardPage extends StatefulWidget {
-  final String role;
   final int initialIndex;
 
-  const DashboardPage({Key? key, required this.role, this.initialIndex = 0}) : super(key: key);
+  const DashboardPage({super.key, this.initialIndex = 0});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -33,6 +32,8 @@ class _DashboardPageState extends State<DashboardPage> {
   List<Map<String, dynamic>> categories = [];
   List<Map<String, dynamic>> subCategories = [];
 
+  String? _userRole;
+
   @override
   void initState() {
     super.initState();
@@ -45,80 +46,123 @@ class _DashboardPageState extends State<DashboardPage> {
   void checkRole() async {
     final prefs = await SharedPreferences.getInstance();
     final role = prefs.getString('role');
+
     if (role != 'Submitter') {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginPage()));
+      await prefs.clear();
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } else {
+      setState(() {
+        _userRole = role;
+      });
     }
+  }
+
+  Future<void> handleForbidden() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Login Tidak Sah'),
+        content: const Text('Sesi login Anda telah berakhir. Silakan login kembali.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+            },
+            child: const Text('OK'),
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> fetchItems() async {
     setState(() => isLoading = true);
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/items'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      List allItems = json.decode(response.body);
-
-      setState(() {
-        items = allItems; // ❗ gunakan semua item, bukan hanya yang pending
-        isLoading = false;
-      });
-    } else {
+    try {
+      final response = await ApiService.get('items');
+      if (response.statusCode == 200) {
+        final List allItems = json.decode(response.body);
+        setState(() {
+          items = allItems;
+          isLoading = false;
+        });
+      } else if (response.statusCode == 403 || response.statusCode == 401) {
+        await handleForbidden();
+      } else {
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
       setState(() => isLoading = false);
+      debugPrint("Error fetchItems: $e");
     }
   }
 
   Future<void> fetchCategories() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/categories'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      setState(() {
-        categories = data.cast<Map<String, dynamic>>();
-      });
+    try {
+      final response = await ApiService.get('categories');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          categories = data.cast<Map<String, dynamic>>();
+        });
+      } else if (response.statusCode == 403 || response.statusCode == 401) {
+        await handleForbidden();
+      }
+    } catch (e) {
+      debugPrint("Error fetchCategories: $e");
     }
   }
 
   Future<void> fetchSubCategoriesByCategory(String categoryName) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    try {
+      final selected = categories.firstWhere(
+        (cat) => cat['name'] == categoryName,
+        orElse: () => {},
+      );
 
-    final selected = categories.firstWhere(
-      (cat) => cat['name'] == categoryName,
-      orElse: () => {},
-    );
-    final categoryId = selected['id'];
-    if (categoryId == null) return;
+      final categoryId = selected['id'];
+      if (categoryId == null) return;
 
-    final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/sub-categories?category_id=$categoryId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
+      final response = await ApiService.get('sub-categories?category_id=$categoryId');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          subCategories = data.cast<Map<String, dynamic>>();
+        });
+      } else if (response.statusCode == 403 || response.statusCode == 401) {
+        await handleForbidden();
+      }
+    } catch (e) {
+      debugPrint("Error fetchSubCategoriesByCategory: $e");
+    }
+  }
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      setState(() {
-        subCategories = data.cast<Map<String, dynamic>>();
-      });
+  Future<void> hapusBarang(int id) async {
+    try {
+      final response = await ApiService.delete('items/$id');
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Barang berhasil dihapus')),
+        );
+        fetchItems();
+      } else if (response.statusCode == 403 || response.statusCode == 401) {
+        await handleForbidden();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal menghapus barang')),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error hapusBarang: $e");
     }
   }
 
@@ -130,13 +174,13 @@ class _DashboardPageState extends State<DashboardPage> {
         content: const Text('Apakah Anda yakin ingin keluar dari akun?'),
         actions: [
           TextButton(
-            child: const Text('Batal'),
             onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
-            child: const Text('Ya, Logout'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            child: const Text('Ya, Logout'),
           ),
         ],
       ),
@@ -144,7 +188,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     if (shouldLogout == true) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('token');
+      await prefs.clear();
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/login');
     }
@@ -182,28 +226,68 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('📦 SAJI', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.indigoAccent,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: 0,
+          backgroundColor: Colors.indigoAccent,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          title: Row(
+            children: [
+              const SizedBox(width: 8),
+              Image.asset(
+                'assets/images/pt_agro_jaya.png',
+                height: 32,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'SAJI',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
           ),
+          actions: [
+            Tooltip(
+              message: "Logout",
+              child: IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: logout,
+              ),
+            ),
+          ],
         ),
+        drawer: buildDrawer(),
+        body: getPages()[_selectedIndex],
+      ),
+    );
+  }
+
+  Future<bool> _onWillPop() async {
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Keluar Aplikasi'),
+        content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
         actions: [
-          Tooltip(
-            message: "Logout",
-            child: IconButton(icon: const Icon(Icons.logout), onPressed: logout),
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Keluar'),
           ),
         ],
       ),
-      drawer: buildDrawer(),
-      body: getPages()[_selectedIndex],
     );
+
+    return shouldExit ?? false;
   }
 
   Widget buildDrawer() {
@@ -214,6 +298,7 @@ class _DashboardPageState extends State<DashboardPage> {
       Icons.upload_rounded,
       Icons.category_outlined,
     ];
+
     final titles = [
       'Dashboard',
       'Stok Barang',
@@ -221,9 +306,13 @@ class _DashboardPageState extends State<DashboardPage> {
       'Mutasi Keluar',
       'Kategori',
     ];
+
     return Drawer(
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(topRight: Radius.circular(20), bottomRight: Radius.circular(20)),
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
       ),
       child: Column(
         children: [
@@ -236,9 +325,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     gradient: LinearGradient(
                       colors: [Colors.indigo, Colors.indigoAccent],
                     ),
-                    borderRadius: BorderRadius.only(topRight: Radius.circular(20)),
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    ),
                   ),
-                  child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
                 );
               }
 
@@ -251,24 +344,36 @@ class _DashboardPageState extends State<DashboardPage> {
                   gradient: LinearGradient(
                     colors: [Colors.indigo, Colors.indigoAccent],
                   ),
-                  borderRadius: BorderRadius.only(topRight: Radius.circular(20)),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20),
+                  ),
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     const Text(
                       '📋 Menu Gudang',
-                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
                       'User: $role',
-                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
+                      ),
                     ),
                     Text(
                       'Fungsi: $tugas',
-                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
+                      ),
                     ),
                   ],
                 ),
@@ -278,45 +383,46 @@ class _DashboardPageState extends State<DashboardPage> {
           Expanded(
             child: Container(
               color: Colors.grey[50],
-              child: ListTileTheme(
-                selectedColor: Colors.indigoAccent,
-                selectedTileColor: Colors.indigo.withOpacity(0.1),
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: icons.length,
-                  separatorBuilder: (context, index) => const Divider(
-                    height: 1,
-                    thickness: 0.8,
-                    indent: 16,
-                    endIndent: 16,
-                    color: Colors.grey,
+              child: ListView.separated(
+                itemCount: icons.length,
+                separatorBuilder: (_, __) => const Divider(
+                  height: 1,
+                  thickness: 0.8,
+                  indent: 16,
+                  endIndent: 16,
+                  color: Colors.grey,
+                ),
+                itemBuilder: (context, index) => ListTile(
+                  leading: Icon(
+                    icons[index],
+                    color: _selectedIndex == index
+                        ? Colors.indigo
+                        : Colors.grey[700],
                   ),
-                  itemBuilder: (context, index) => ListTile(
-                    dense: true,
-                    leading: Icon(
-                      icons[index],
-                      color: _selectedIndex == index ? Colors.indigo : Colors.grey[700],
+                  title: Text(
+                    titles[index],
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: _selectedIndex == index
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: _selectedIndex == index
+                          ? Colors.indigo
+                          : Colors.grey[800],
                     ),
-                    title: Text(
-                      titles[index],
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: _selectedIndex == index ? FontWeight.w600 : FontWeight.normal,
-                        color: _selectedIndex == index ? Colors.indigo : Colors.grey[800],
-                      ),
-                    ),
-                    selected: _selectedIndex == index,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = index;
-                        Navigator.pop(context);
-                        if (index == 1) fetchItems();
-                      });
-                    },
                   ),
+                  selected: _selectedIndex == index,
+                  selectedTileColor: Colors.indigo.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _selectedIndex = index;
+                      Navigator.pop(context);
+                      if (index == 1) fetchItems();
+                    });
+                  },
                 ),
               ),
             ),
@@ -324,45 +430,5 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
     );
-  }
-
-  ListTile buildDrawerItem(IconData icon, String title, int index) {
-    return ListTile(
-      dense: true,
-      leading: Icon(icon),
-      title: Text(title, style: TextStyle(fontWeight: _selectedIndex == index ? FontWeight.bold : FontWeight.normal, color: _selectedIndex == index ? Colors.indigo : null)),
-      selected: _selectedIndex == index,
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-          Navigator.pop(context);
-          if (index == 1) fetchItems();
-        });
-      },
-    );
-  }
-
-  Future<void> hapusBarang(int id) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    final response = await http.delete(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/items/$id'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Barang berhasil dihapus')),
-      );
-      fetchItems();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menghapus barang')),
-      );
-    }
   }
 }

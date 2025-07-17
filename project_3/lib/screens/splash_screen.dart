@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+import '../submitter/dashboard_page.dart';
+import '../approver/dashboard_approver_page.dart';
+import 'login_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,8 +15,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/login');
+    Future.delayed(const Duration(seconds: 2), () async {
+      final isLoggedIn = await AuthService.isLoggedIn();
+
+      if (isLoggedIn) {
+        await AuthService.navigateBasedOnRole(
+          context,
+          const DashboardApproverPage(),
+          const DashboardPage(),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      }
     });
   }
 
@@ -24,7 +41,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo
             ClipRRect(
               borderRadius: BorderRadius.circular(120),
               child: Image.asset(
@@ -35,7 +51,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            // Judul aplikasi
             const Text(
               'SAJI',
               style: TextStyle(
@@ -45,7 +60,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            // Deskripsi tambahan
             const Text(
               'PT. AGRO JAYA INDUSTRI',
               style: TextStyle(

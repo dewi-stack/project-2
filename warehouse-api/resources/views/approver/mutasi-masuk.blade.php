@@ -2,6 +2,7 @@
 
 @section('content')
 
+{{-- 🧠 Fungsi helper untuk ikon sorting --}}
 @php
     function sortIcon($field) {
         $currentSort = request('sort');
@@ -17,6 +18,7 @@
     }
 @endphp
 
+{{-- 🔼 Header --}}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h5 class="mb-0">📥 Mutasi Masuk</h5>
   <div>
@@ -29,7 +31,7 @@
   </div>
 </div>
 
-{{-- Tabel Mutasi --}}
+{{-- 📊 Tabel Mutasi --}}
 <div class="table-responsive">
   <table class="table table-bordered table-hover align-middle">
     <thead class="table-light text-center">
@@ -67,51 +69,53 @@
           <td class="text-center">
             @switch($request->status)
               @case('approved')
-                <span class="badge bg-success">✅ Disetujui</span>
+                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Disetujui</span>
                 @break
               @case('pending')
-                <span class="badge bg-warning text-dark">⏳ Menunggu</span>
+                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Menunggu</span>
                 @break
               @default
-                <span class="badge bg-secondary">❌ Ditolak</span>
+                <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i> Ditolak</span>
             @endswitch
           </td>
-          <td>{{ $request->created_at->format('d/m/Y H:i') }}</td>
+          <td class="text-center">{{ $request->created_at->format('d/m/Y H:i') }}</td>
         </tr>
       @empty
         <tr>
-          <td colspan="8" class="text-center">Tidak ada data mutasi masuk.</td>
+          <td colspan="8" class="text-center text-muted py-3">Tidak ada data mutasi masuk.</td>
         </tr>
       @endforelse
     </tbody>
   </table>
 </div>
 
-{{-- Pagination --}}
+{{-- 📄 Pagination --}}
 @if ($mutasi->hasPages())
   <div class="d-flex justify-content-center mt-4">
     {{ $mutasi->onEachSide(1)->links('pagination::bootstrap-5') }}
   </div>
 @endif
 
-{{-- Modal Upload --}}
+{{-- 📥 Modal Import Excel --}}
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <form method="POST" action="{{ route('approver.mutasi-masuk.import') }}" enctype="multipart/form-data" class="modal-content">
       @csrf
       <div class="modal-header">
-        <h5 class="modal-title" id="importModalLabel">📤 Import Mutasi Masuk dari Excel</h5>
+        <h5 class="modal-title" id="importModalLabel"><i class="bi bi-upload"></i> Import Mutasi Masuk dari Excel</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
           <label for="file" class="form-label">Pilih file Excel (.xlsx / .xls)</label>
           <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
-          <small class="text-muted">Pastikan format kolom sesuai dengan template.</small>
+          <small class="text-muted">Pastikan format kolom sesuai dengan template yang tersedia.</small>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-primary">Import Sekarang</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-upload me-1"></i> Import Sekarang
+        </button>
       </div>
     </form>
   </div>

@@ -45,12 +45,12 @@ class _LoginPageState extends State<LoginPage> {
         if (role == 'Approver') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => DashboardApproverPage(role: role)),
+            MaterialPageRoute(builder: (_) => const DashboardApproverPage()),
           );
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => DashboardPage(role: role)),
+            MaterialPageRoute(builder: (_) => const DashboardPage()),
           );
         }
       } else {
@@ -70,23 +70,49 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.indigo[50],
+      backgroundColor: Colors.grey[50],
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock_outline, size: 80, color: Colors.indigo),
-              const SizedBox(height: 16),
-              const Text(
-                'Warehouse Login',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.indigo),
+              // Logo di atas
+              Image.asset(
+                'assets/images/pt_agro_jaya.png',
+                height: 100,
               ),
               const SizedBox(height: 24),
+
+              // Judul
+              const Text(
+                'Selamat Datang di SAJI',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Subteks
+              const Text(
+                'Silakan login untuk melanjutkan',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Card Form
               Card(
-                elevation: 6,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                   child: Form(
@@ -121,8 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                           width: double.infinity,
                           height: 48,
                           child: ElevatedButton.icon(
-                            icon: const Icon(Icons.login),
-                            label: loading
+                            icon: loading
                                 ? const SizedBox(
                                     height: 24,
                                     width: 24,
@@ -131,7 +156,16 @@ class _LoginPageState extends State<LoginPage> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text("Login", style: TextStyle(color: Colors.white)),
+                                : const Icon(Icons.lock_open, color: Colors.white),
+                            label: loading
+                                ? const SizedBox.shrink()
+                                : const Text(
+                                    "Login",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                             onPressed: loading ? null : login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.indigo,
@@ -146,6 +180,14 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Copyright
+              const Text(
+                '© 2025 PT Agro Jaya Industri · SAJI System',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),

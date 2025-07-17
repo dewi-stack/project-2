@@ -34,5 +34,12 @@ class Item extends Model
         return $this->belongsTo(SubCategory::class);
     }
 
+    // Di model Item.php
+    public function latestApproved()
+    {
+        return $this->hasOne(StockRequest::class)
+            ->where('status', 'approved')
+            ->latestOfMany(); // atau ->latest() jika perlu
+    }
 }
 

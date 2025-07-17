@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/api_service.dart';
 
@@ -16,7 +15,6 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
   final TextEditingController _stokController = TextEditingController();
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _lokasiController = TextEditingController();
-  final TextEditingController _satuanController = TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
 
   List<dynamic> _kategoriList = [];
@@ -38,188 +36,306 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
   }
 
   Future<void> fetchKategori() async {
-    try {
-      final kategori = await ApiService.fetchKategori();
-      setState(() => _kategoriList = kategori);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Gagal mengambil data kategori")),
-        );
-      }
-    }
+    final kategori = await ApiService.fetchKategori();
+    setState(() => _kategoriList = kategori);
   }
 
   Future<void> fetchSubKategori(int categoryId) async {
-    try {
-      final subkategori = await ApiService.fetchSubKategori(categoryId);
-      setState(() => _subKategoriList = subkategori);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Gagal mengambil sub kategori")),
-        );
-      }
-    }
+    final subkategori = await ApiService.fetchSubKategori(categoryId);
+    setState(() => _subKategoriList = subkategori);
   }
 
   Future<void> searchItem(String keyword) async {
-    try {
-      final result = await ApiService.searchItems(keyword);
-      setState(() => _filteredItems = result);
-    } catch (_) {
-      setState(() => _filteredItems = []);
-    }
+    final result = await ApiService.searchItems(keyword);
+    setState(() => _filteredItems = result);
   }
 
-  Future<void> cekSKU(String sku) async {
+  Future<void> cekSKU(String sku, {bool skipManualInput = false, bool fromSearch = false}) async {
     final existingItem = await ApiService.fetchItemBySKU(sku);
 
     if (existingItem != null) {
+      final itemCategoryId = existingItem['category_id']?.toString();
+      final itemSubCategoryId = existingItem['sub_category_id']?.toString();
+
+      if (_selectedKategoriId != null && _selectedKategoriId != itemCategoryId) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("⚠️ Kategori tidak sesuai dengan data barang.")),
+        );
+      }
+
+      if (_selectedSubKategoriId != null && _selectedSubKategoriId != itemSubCategoryId) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("⚠️ Subkategori tidak sesuai dengan data barang.")),
+        );
+      }
+
       final success = await showTambahStokDialog(existingItem);
       if (success == true && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Berhasil mengajukan tambah stok")),
+          const SnackBar(content: Text("✅ Berhasil mengajukan tambah stok")),
         );
         Navigator.pop(context, true);
       }
-      return; // ✅ Stop di sini jika item sudah ada
+      return;
     }
 
     if (_selectedKategoriId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Pilih kategori terlebih dahulu!")),
+        const SnackBar(content: Text("❗Pilih kategori terlebih dahulu untuk menambahkan barang baru!")),
       );
       return;
     }
 
-    final success = await showInputBarangMasukDialog(sku);
+    String? finalSKU = skipManualInput ? sku : await showSKUInputDialog();
+    if (finalSKU == null || finalSKU.isEmpty) return;
+
+    final success = await showInputBarangMasukDialog(finalSKU);
     if (success == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Barang baru berhasil disimpan")),
+        const SnackBar(content: Text("✅ Barang baru berhasil disimpan")),
       );
       Navigator.pop(context, true);
     }
   }
 
-  Future<bool?> showTambahStokDialog(Map<String, dynamic> item) async {
-  _stokController.clear();
-  _deskripsiController.clear(); // pastikan deskripsi kosong setiap buka dialog baru
+  Future<String?> showSKUInputDialog() async {
+    final TextEditingController _manualSKUController = TextEditingController();
 
-  return showDialog<bool>(
-    context: context,
-    builder: (_) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text("Ajukan Tambah Stok"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("SKU: ${item['sku']}", style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text("Nama: ${item['name']}"),
-            Text("Stok Saat Ini: ${item['stock']}", style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _stokController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Jumlah Tambahan', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _deskripsiController,
-              decoration: const InputDecoration(labelText: 'Deskripsi/Keterangan', border: OutlineInputBorder()),
-            ),
+    return showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Input Kode Barang Baru"),
+        content: TextField(
+          controller: _manualSKUController,
+          decoration: const InputDecoration(
+            labelText: "Masukkan Kode Barang",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
+          ElevatedButton(
+            onPressed: () {
+              final sku = _manualSKUController.text.trim();
+              if (sku.isEmpty) return;
+              Navigator.pop(context, sku);
+            },
+            child: const Text("Lanjut"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> showTambahStokDialog(Map<String, dynamic> item) async {
+    _stokController.clear();
+    _deskripsiController.clear();
+
+    final unit = item['unit']?.toString().toLowerCase() ?? 'pcs';
+    selectedSatuan = satuanList.contains(unit) ? unit : 'pcs';
+
+    return showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+        actionsPadding: const EdgeInsets.only(right: 12, bottom: 8),
+        title: Row(
+          children: const [
+            Icon(Icons.add_box_outlined, color: Colors.indigoAccent),
+            SizedBox(width: 8),
+            Text("Ajukan Tambah Stok", style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text("Batal"),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.indigoAccent, // warna latar
-            foregroundColor: Colors.white,
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("📦 Kode Barang: ${item['sku']}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text("📝 Nama: ${item['name']}"),
+                    const SizedBox(height: 4),
+                    Text("📊 Stok Saat Ini: ${item['stock']} ${item['unit'] ?? ''}", style: const TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _stokController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Jumlah Tambahan',
+                  prefixIcon: Icon(Icons.add_circle_outline),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                initialValue: selectedSatuan,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Satuan',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.straighten),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _deskripsiController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Deskripsi/Keterangan',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.note_alt),
+                ),
+              ),
+            ],
           ),
-          onPressed: () async {
-            final qty = int.tryParse(_stokController.text);
-            final keterangan = _deskripsiController.text.trim();
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () => Navigator.pop(context, false),
+            icon: const Icon(Icons.cancel, color: Colors.redAccent),
+            label: const Text("Batal"),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.send),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigoAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              final qty = int.tryParse(_stokController.text.trim());
+              final keterangan = _deskripsiController.text.trim();
 
-            if (qty == null || qty <= 0) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Jumlah tidak valid")),
+              if (qty == null || qty <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jumlah tidak valid")));
+                return;
+              }
+
+              final success = await ApiService.ajukanStockRequest(
+                itemId: item['id'],
+                quantity: qty,
+                type: 'increase',
+                description: keterangan,
+                unit: selectedSatuan,
               );
-              return;
-            }
 
-            final success = await ApiService.ajukanStockRequest(
-              itemId: item['id'],
-              quantity: qty,
-              type: 'increase',
-              description: keterangan,
-              unit: selectedSatuan,
-            );
-
-            if (success) Navigator.pop(context, true);
-          },
-          child: const Text("Ajukan"),
-        ),
-      ]
-
-        ),
+              if (success) Navigator.pop(context, true);
+            },
+            label: const Text("Ajukan"),
+          ),
+        ],
+      ),
     );
-}
-
+  }
 
   Future<bool?> showInputBarangMasukDialog(String sku) async {
     _namaController.clear();
     _lokasiController.clear();
     _stokController.clear();
-    _satuanController.clear();
     _deskripsiController.clear();
 
     return showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Input Barang Baru"),
+        title: Row(
+          children: const [
+            Icon(Icons.inventory_2_outlined, color: Colors.indigoAccent),
+            SizedBox(width: 8),
+            Text("Input Barang Baru", style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
         content: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("SKU: $sku"),
-              const SizedBox(height: 8),
-              TextField(controller: _namaController, decoration: const InputDecoration(labelText: 'Nama Barang', border: OutlineInputBorder())),
-              const SizedBox(height: 8),
-              TextField(controller: _lokasiController, decoration: const InputDecoration(labelText: 'Lokasi', border: OutlineInputBorder())),
-              const SizedBox(height: 8),
-              TextField(controller: _stokController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Stok', border: OutlineInputBorder())),
-              const SizedBox(height: 8),
-              TextField(controller: _satuanController, decoration: const InputDecoration(labelText: 'Satuan', border: OutlineInputBorder())),
-              const SizedBox(height: 8),
-              TextField(controller: _deskripsiController, decoration: const InputDecoration(labelText: 'Deskripsi/Keterangan', border: OutlineInputBorder())),
+              Text("📦 Kode Barang: $sku", style: const TextStyle(fontWeight: FontWeight.bold)),
+              const Divider(height: 20),
+              TextField(
+                controller: _namaController,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Barang',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.label_outline),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _lokasiController,
+                decoration: const InputDecoration(
+                  labelText: 'Lokasi',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on_outlined),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _stokController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Jumlah Stok',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.storage_rounded),
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedSatuan,
+                decoration: const InputDecoration(
+                  labelText: 'Satuan',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.straighten),
+                ),
+                items: satuanList.map((satuan) => DropdownMenuItem(
+                  value: satuan,
+                  child: Text(satuan),
+                )).toList(),
+                onChanged: (val) => setState(() => selectedSatuan = val!),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _deskripsiController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Deskripsi/Keterangan',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.description_outlined),
+                ),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(
+          TextButton.icon(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Batal"),
+            icon: const Icon(Icons.cancel, color: Colors.redAccent),
+            label: const Text("Batal"),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
+            icon: const Icon(Icons.save_rounded),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.indigoAccent,
-              foregroundColor: Colors.white, // ⬅️ ini bikin teks "Simpan" jadi putih
+              foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              final nama = _namaController.text;
-              final lokasi = _lokasiController.text;
-              final stok = int.tryParse(_stokController.text);
-              final satuan = _satuanController.text;
-              final deskripsi = _deskripsiController.text;
+              final nama = _namaController.text.trim();
+              final lokasi = _lokasiController.text.trim();
+              final stok = int.tryParse(_stokController.text.trim());
+              final deskripsi = _deskripsiController.text.trim();
 
-              if (nama.isEmpty || lokasi.isEmpty || stok == null || satuan.isEmpty) {
+              if (nama.isEmpty || lokasi.isEmpty || stok == null || selectedSatuan.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Semua data wajib diisi")),
                 );
@@ -231,7 +347,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
                 'name': nama,
                 'location': lokasi,
                 'stock': stok,
-                'unit': satuan,
+                'unit': selectedSatuan,
                 'description': deskripsi,
                 'category_id': int.parse(_selectedKategoriId!),
                 'sub_category_id': _selectedSubKategoriId != null ? int.parse(_selectedSubKategoriId!) : null,
@@ -239,7 +355,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
 
               if (success) Navigator.pop(context, true);
             },
-            child: const Text("Simpan"),
+            label: const Text("Simpan"),
           ),
         ],
       ),
@@ -249,9 +365,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
   void _scanWithCamera() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => BarcodeScannerPage(onDetect: (sku) => Navigator.pop(context, sku)),
-      ),
+      MaterialPageRoute(builder: (context) => BarcodeScannerPage(onDetect: (sku) => Navigator.pop(context, sku))),
     );
     if (result != null) cekSKU(result);
   }
@@ -260,34 +374,32 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Scan / Input SKU"),
+        title: const Text("Scan / Input Kode Barang"),
         backgroundColor: Colors.indigoAccent,
         foregroundColor: Colors.white,
-         bottom: TabBar(
+        bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.white,             
-          unselectedLabelColor: Colors.white70, 
-          indicatorColor: Colors.white,         
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.amberAccent,
           tabs: const [
             Tab(text: 'Kategori'),
-            Tab(text: 'Input/Scan SKU'),
+            Tab(text: 'Input/Scan Kode Barang'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
+          // Tab Kategori
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DropdownButtonFormField<String>(
                   value: _selectedKategoriId,
                   decoration: const InputDecoration(labelText: "Pilih Kategori", border: OutlineInputBorder()),
-                  items: _kategoriList.map((item) {
-                    return DropdownMenuItem(value: item['id'].toString(), child: Text(item['name']));
-                  }).toList(),
+                  items: _kategoriList.map((item) => DropdownMenuItem(value: item['id'].toString(), child: Text(item['name']))).toList(),
                   onChanged: (val) {
                     setState(() {
                       _selectedKategoriId = val;
@@ -301,47 +413,58 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
                 DropdownButtonFormField<String>(
                   value: _selectedSubKategoriId,
                   decoration: const InputDecoration(labelText: "Pilih Sub Kategori", border: OutlineInputBorder()),
-                  items: _subKategoriList.map((item) {
-                    return DropdownMenuItem(value: item['id'].toString(), child: Text(item['name']));
-                  }).toList(),
+                  items: _subKategoriList.map((item) => DropdownMenuItem(value: item['id'].toString(), child: Text(item['name']))).toList(),
                   onChanged: (val) => setState(() => _selectedSubKategoriId = val),
                 ),
                 const SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.navigate_next),
-                    label: const Text("Lanjut Input / Scan SKU"),
-                    onPressed: () => _tabController.animateTo(1),
-                  ),
-                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.navigate_next),
+                  label: const Text("Lanjut Input / Scan Kode Barang"),
+                  onPressed: () => _tabController.animateTo(1),
+                )
               ],
             ),
           ),
+
+          // Tab Scan/Input
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 TextField(
                   controller: _searchController,
-                  decoration: const InputDecoration(
-                    hintText: "Cari nama atau SKU",
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: "Cari Nama atau Kode Barang",
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
                   ),
-                  onChanged: (value) => searchItem(value),
+                  onChanged: (value) {
+                    if (value.trim().isEmpty) {
+                      setState(() {
+                        _filteredItems.clear();
+                      });
+                    } else {
+                      searchItem(value);
+                    }
+                  },
                 ),
                 const SizedBox(height: 10),
-                if (_filteredItems.isNotEmpty)
+                if (_searchController.text.isNotEmpty && _filteredItems.isNotEmpty)
                   Expanded(
-                    child: ListView.builder(
+                    child: ListView.separated(
                       itemCount: _filteredItems.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final item = _filteredItems[index];
                         return Card(
+                          color: Colors.indigo.shade50,
                           child: ListTile(
-                            title: Text(item['name']),
-                            subtitle: Text('SKU: ${item['sku']}'),
-                            trailing: const Icon(Icons.check_circle, color: Colors.green),
+                            leading: const Icon(Icons.qr_code, color: Colors.indigo),
+                            title: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text("Kode: ${item['sku']} | Stok: ${item['stock']} ${item['unit'] ?? ''}"),
+                            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.indigo),
                             onTap: () => cekSKU(item['sku']),
                           ),
                         );
@@ -349,19 +472,21 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
                     ),
                   )
                 else if (_searchController.text.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Column(
-                      children: [
-                        const Text("Barang tidak ditemukan."),
-                        const SizedBox(height: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text("Tambah Barang Baru"),
-                          onPressed: () => cekSKU(_searchController.text),
-                        ),
-                      ],
-                    ),
+                  Column(
+                    children: [
+                      const Text("Barang tidak ditemukan.", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.add),
+                        label: const Text("Input Barang Baru (Manual SKU)"),
+                        onPressed: () async {
+                          String? manualSKU = await showSKUInputDialog();
+                          if (manualSKU != null && manualSKU.isNotEmpty) {
+                            await cekSKU(manualSKU, skipManualInput: true);
+                          }
+                        },
+                      ),
+                    ],
                   )
                 else
                   Column(
@@ -376,25 +501,40 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
                         ),
                       ),
                       const Divider(height: 32),
-                      const Text("Atau input SKU manual:"),
-                      const SizedBox(height: 8),
+                      const Text("Atau Input Kode Barang manual:"),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: _skuController,
-                        decoration: const InputDecoration(
-                          hintText: "Masukkan kode SKU",
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          hintText: "Masukkan Kode Barang",
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
                         ),
                       ),
                       const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => cekSKU(_skuController.text),
-                        child: const Text("OK"),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text("OK"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        onPressed: () async {
+                          final sku = _skuController.text.trim();
+                          if (sku.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Kode barang tidak boleh kosong")));
+                            return;
+                          }
+                          await cekSKU(sku, skipManualInput: true);
+                        },
                       ),
                     ],
-                  ),
+                  )
               ],
             ),
-          ),
+          )
         ],
       ),
     );

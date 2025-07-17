@@ -22,5 +22,15 @@ class SubCategoryRequest extends Model
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
+
+    public function subCategory()
+    {
+        return $this->belongsTo(SubCategory::class, 'sub_category_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
 }
 

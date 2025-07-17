@@ -12,10 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class); // ✅ Ganti dengan append()
+    $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
 
-        $middleware->alias([
+    $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'nocache' => \App\Http\Middleware\NoCache::class,
+            'prevent-back-history' => \App\Http\Middleware\PreventBackHistory::class, // ✅ Tambahkan ini
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

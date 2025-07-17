@@ -77,6 +77,35 @@ class StockRequestController extends Controller
         return response()->json($query->get());
     }
 
+    public function submitterGlobalRequests(Request $request)
+    {
+        $requests = StockRequest::with('item', 'user')
+            ->whereHas('user', fn($q) => $q->where('role', 'Submitter'))
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json($requests);
+    }
+
+    public function globalRequests(Request $request)
+    {
+        $query = StockRequest::with(['item', 'user'])
+            ->whereHas('user', fn($q) => $q->where('role', 'Submitter'))
+            ->orderByDesc('created_at');
+
+        // Optional filter: type=increase|decrease
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
+
+        // Optional filter: status=approved|pending|rejected
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        return response()->json($query->get());
+    }
+
     // Approver: Setujui atau tolak permintaan stok (termasuk hapus)
     public function approve(Request $request, $id)
     {
@@ -136,13 +165,16 @@ class StockRequestController extends Controller
         $items = Item::with(['category', 'subCategory', 'stockRequests' => function ($q) {
                 $q->latest(); // agar urutan stockRequests per item dari terbaru
             }])
+            ->withMax(['stockRequests as latest_mutation_at' => function ($q) {
+                $q->select(DB::raw('MAX(created_at)'));
+            }], 'created_at') // ambil waktu mutasi terakhir
             ->when($request->category, fn($q) => $q->where('category_id', $request->category))
             ->when($request->sub_category, fn($q) => $q->where('sub_category_id', $request->sub_category))
             ->when($request->q, fn($q) => $q->where(function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->q . '%')
                     ->orWhere('sku', 'like', '%' . $request->q . '%');
             }))
-            ->orderBy('updated_at', 'desc')
+            ->orderByDesc('latest_mutation_at') // 🔥 urutkan berdasarkan mutasi terakhir
             ->paginate(30)
             ->appends($request->all());
 

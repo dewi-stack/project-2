@@ -15,7 +15,13 @@ class ItemController extends Controller
         $user = $request->user();
 
         // Ambil semua item dengan relasi
-        $query = Item::with(['category', 'subCategory', 'user', 'stockRequests']);
+        $query = Item::with([
+            'category',
+            'subCategory',
+            'user',
+            'stockRequests.user',       // ← ini penting untuk submitter
+            'stockRequests.approver',   // ← jika ada kolom approved_by
+        ]);
 
         // Jika kamu ingin menampilkan semua item ke semua role (baik Submitter maupun Approver), cukup kembalikan semua data:
         return response()->json($query->get(), 200);

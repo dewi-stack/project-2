@@ -18,56 +18,135 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
   @override
   void initState() {
     super.initState();
-    fetchRequests();
+    validateTokenAndFetch();
+  }
+
+  Future<Map<String, String>> getHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      await handleForcedLogout();
+      return {};
+    }
+
+    return {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+  }
+
+  bool isForcedLogout(http.Response res) {
+    if (res.statusCode == 401 || res.statusCode == 403) {
+      try {
+        final data = json.decode(res.body);
+        return data['forced_logout'] == true || data['message'] == 'Unauthenticated.';
+      } catch (_) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<void> handleForcedLogout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/login');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sesi Anda telah berakhir. Silakan login kembali.')),
+    );
+  }
+
+  Future<void> validateTokenAndFetch() async {
+    final headers = await getHeaders();
+    if (headers.isEmpty) return;
+
+    final response = await http.get(
+      Uri.parse('http://192.168.1.6:8000/api/me'),
+      headers: headers,
+    );
+
+    if (isForcedLogout(response)) {
+      await handleForcedLogout();
+      return;
+    }
+
+    if (response.statusCode == 200) {
+      fetchRequests();
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memverifikasi token.')),
+        );
+      }
+    }
   }
 
   Future<void> fetchRequests() async {
     setState(() => isLoading = true);
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final headers = await getHeaders();
+    if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/stock-requests'),
-      headers: {'Authorization': 'Bearer $token'},
+      Uri.parse('http://192.168.1.6:8000/api/stock-requests'),
+      headers: headers,
     );
+
+    if (isForcedLogout(response)) {
+      await handleForcedLogout();
+      return;
+    }
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      setState(() {
-        requests = data.where((r) => r['type'] == 'decrease' && r['status'] == 'pending').toList();
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          requests = data
+              .where((r) => r['type'] == 'decrease' && r['status'] == 'pending')
+              .toList();
+          isLoading = false;
+        });
+      }
     } else {
-      setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal memuat data')),
-      );
+      if (mounted) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat data.')),
+        );
+      }
     }
   }
 
   Future<void> handleApproval(int id, String status) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final headers = await getHeaders();
+    if (headers.isEmpty) return;
 
     final response = await http.put(
-      Uri.parse('https://green-dog-346335.hostingersite.com/api/stock-requests/$id/approve'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json', // ✅ Tambahkan ini!
-      },
+      Uri.parse('http://192.168.1.6:8000/api/stock-requests/$id/approve'),
+      headers: headers,
       body: jsonEncode({'status': status}),
     );
 
+    if (isForcedLogout(response)) {
+      await handleForcedLogout();
+      return;
+    }
+
     if (response.statusCode == 200) {
-      fetchRequests();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permintaan berhasil ${status == 'approved' ? 'disetujui' : 'ditolak'}')),
-      );
+      await fetchRequests();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Permintaan berhasil ${status == 'approved' ? 'disetujui' : 'ditolak'}')),
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memproses permintaan: ${response.body}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memproses permintaan: ${response.body}')),
+        );
+      }
     }
   }
 
@@ -78,122 +157,119 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : requests.isEmpty
-              ? const Center(child: Text('Tidak ada permintaan keluar yang menunggu persetujuan.'))
+              ? const Center(
+                  child: Text(
+                    'Tidak ada permintaan keluar yang menunggu persetujuan.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                )
               : ListView.builder(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   itemCount: requests.length,
                   itemBuilder: (context, index) {
                     final req = requests[index];
                     final item = req['item'];
                     final createdAt = DateFormat('dd/MM/yy').format(DateTime.parse(req['created_at']));
+                    final currentStock = item['stock'] ?? 0;
 
                     return Card(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 4,
-                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      elevation: 5,
+                      margin: const EdgeInsets.only(bottom: 16),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(item['name'] ?? '-',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.indigo,
-                                )),
-                            const SizedBox(height: 8),
+                            // Nama item
                             Row(
                               children: [
-                                const Icon(Icons.qr_code, size: 18, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                Text("SKU: ${item['sku'] ?? '-'}"),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.inventory_2, size: 18, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                Text("Jumlah Keluar: ${req['quantity']} unit"),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.description_outlined, size: 18, color: Colors.grey),
-                                const SizedBox(width: 6),
+                                const Icon(Icons.inventory, color: Colors.indigo),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Keterangan: ${req['description'] ?? '-'}',
-                                    style: const TextStyle(color: Colors.black87),
+                                    item['name'] ?? '-',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.indigo,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.deepPurple.shade50,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    "Pengurangan Stok",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.deepPurple,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on, size: 18, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                Text("Lokasi: ${item['location']}"),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_month, size: 18, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                Text("Tanggal Permintaan: $createdAt"),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.info_outline, size: 18, color: Colors.grey),
-                                const SizedBox(width: 6),
-                                const Text(
-                                  "Tipe: Pengurangan Stok",
-                                  style: TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    color: Colors.deepPurple,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
+
+                            const SizedBox(height: 12),
+
+                            // SKU
+                            RowInfo(icon: Icons.qr_code, label: "SKU", value: item['sku']),
+                            // Jumlah
+                            RowInfo(icon: Icons.remove_circle, label: "Jumlah Keluar", value: "${req['quantity']} unit"),
+                            // Keterangan
+                            RowInfo(
+                                icon: Icons.description_outlined,
+                                label: "Keterangan",
+                                value: req['description'] ?? "-",
+                                isMultiLine: true),
+                            // Lokasi
+                            RowInfo(icon: Icons.location_on, label: "Lokasi", value: item['location']),
+                            // Tanggal
+                            RowInfo(icon: Icons.calendar_today, label: "Tanggal Permintaan", value: createdAt),
+
                             const SizedBox(height: 16),
+
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 ElevatedButton.icon(
                                   onPressed: () {
-                                    final currentStock = item['stock'] ?? 0;
                                     if (currentStock <= 0) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Stok kosong. Tidak bisa dikurangi.')),
-                                      );
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Stok kosong. Tidak bisa dikurangi.'),
+                                            backgroundColor: Colors.redAccent,
+                                          ),
+                                        );
+                                      }
                                       return;
                                     }
                                     handleApproval(req['id'], 'approved');
                                   },
                                   icon: const Icon(Icons.check),
-                                  label: const Text('Approve'),
+                                  label: const Text('Setujui'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 12),
                                 ElevatedButton.icon(
                                   onPressed: () => handleApproval(req['id'], 'rejected'),
                                   icon: const Icon(Icons.close),
-                                  label: const Text('Reject'),
+                                  label: const Text('Tolak'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                   ),
                                 ),
                               ],
@@ -204,6 +280,47 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
                     );
                   },
                 ),
+    );
+  }
+
+}
+
+class RowInfo extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isMultiLine;
+
+  const RowInfo({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.isMultiLine = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: Colors.grey[600]),
+          const SizedBox(width: 8),
+          Text(
+            "$label: ",
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.black87),
+              softWrap: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
