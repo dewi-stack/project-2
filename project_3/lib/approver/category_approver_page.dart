@@ -81,7 +81,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
 
     try {
       final res = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/category-requests/global'),
+        Uri.parse('https://saji.my.id/api/category-requests/global'),
         headers: headers,
       );
 
@@ -114,7 +114,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
 
     try {
       final res = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/subcategory-requests/global'),
+        Uri.parse('https://saji.my.id/api/subcategory-requests/global'),
         headers: headers,
       );
 
@@ -149,7 +149,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
     final headers = await _getHeaders();
     if (headers.isEmpty) return;
 
-    final url = 'http://192.168.1.6:8000/api/$endpoint/$id/$status';
+    final url = 'https://saji.my.id/api/$endpoint/$id/$status';
 
     try {
       http.Response res;

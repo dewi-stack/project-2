@@ -74,7 +74,7 @@ class _CategoryPageState extends State<CategoryPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
+      Uri.parse('https://saji.my.id/api/categories'),
       headers: headers,
     );
 
@@ -100,7 +100,7 @@ class _CategoryPageState extends State<CategoryPage> {
     };
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/category-requests'),
+      Uri.parse('https://saji.my.id/api/category-requests'),
       headers: headers,
       body: json.encode(body),
     );
@@ -124,7 +124,7 @@ class _CategoryPageState extends State<CategoryPage> {
     if (headers.isEmpty) return;
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/subcategory-requests'),
+      Uri.parse('https://saji.my.id/api/subcategory-requests'),
       headers: headers,
       body: json.encode({
         'category_id': categoryId,
@@ -151,7 +151,7 @@ class _CategoryPageState extends State<CategoryPage> {
     if (headers.isEmpty) return;
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/subcategory-requests'),
+      Uri.parse('https://saji.my.id/api/subcategory-requests'),
       headers: headers,
       body: json.encode({
         'category_id': categoryId,

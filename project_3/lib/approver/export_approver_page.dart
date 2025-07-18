@@ -91,7 +91,7 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/items'),
+      Uri.parse('https://saji.my.id/api/items'),
       headers: headers,
     );
 

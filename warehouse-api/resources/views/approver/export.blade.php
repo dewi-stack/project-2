@@ -52,7 +52,7 @@ function downloadPosisi() {
     alert("Silakan pilih tanggal terlebih dahulu");
     return;
   }
-  window.location.href = `/export/posisi?tanggal=${encodeURIComponent(tanggal)}`;
+  window.location.href = `/approver/export/posisi?tanggal=${encodeURIComponent(tanggal)}`;
 }
 
 function downloadMutasi() {
@@ -64,7 +64,7 @@ function downloadMutasi() {
     return;
   }
 
-  window.location.href = `/export/mutasi?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}`;
+  window.location.href = `/approver/export/mutasi?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}`;
 }
 </script>
 @endsection

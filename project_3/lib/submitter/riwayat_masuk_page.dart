@@ -53,7 +53,7 @@ class _RiwayatMasukPageState extends State<RiwayatMasukPage> {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/stock-requests/submitter'), // ✅ endpoint baru
+        Uri.parse('https://saji.my.id/api/stock-requests/submitter'), // ✅ endpoint baru
         headers: headers,
       );
 

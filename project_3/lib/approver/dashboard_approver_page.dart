@@ -108,7 +108,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (headers.isEmpty) return;
 
     final res = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/items'),
+      Uri.parse('https://saji.my.id/api/items'),
       headers: headers,
     );
     if (!mounted) return;
@@ -130,7 +130,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (headers.isEmpty) return;
 
     final res = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
+      Uri.parse('https://saji.my.id/api/categories'),
       headers: headers,
     );
     if (!mounted) return;
@@ -156,7 +156,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (categoryId == null) return;
 
     final res = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/sub-categories?category_id=$categoryId'),
+      Uri.parse('https://saji.my.id/api/sub-categories?category_id=$categoryId'),
       headers: headers,
     );
     if (!mounted) return;

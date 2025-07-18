@@ -42,7 +42,7 @@ class StokBarangApproverPage extends StatelessWidget {
     }
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.6:8000/api/stock-requests/$requestId/approve'),
+      Uri.parse('https://saji.my.id/api/stock-requests/$requestId/approve'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
