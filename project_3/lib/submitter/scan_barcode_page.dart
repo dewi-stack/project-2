@@ -59,20 +59,26 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
 
       if (_selectedKategoriId != null && _selectedKategoriId != itemCategoryId) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("⚠️ Kategori tidak sesuai dengan data barang.")),
+          const SnackBar(content: Text("⚠️ Kategori tidak sesuai dengan data barang."),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
 
       if (_selectedSubKategoriId != null && _selectedSubKategoriId != itemSubCategoryId) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("⚠️ Subkategori tidak sesuai dengan data barang.")),
+          const SnackBar(content: Text("⚠️ Subkategori tidak sesuai dengan data barang."),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
 
       final success = await showTambahStokDialog(existingItem);
       if (success == true && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Berhasil mengajukan tambah stok")),
+          const SnackBar(content: Text("✅ Berhasil mengajukan tambah stok"),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context, true);
       }
@@ -81,7 +87,9 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
 
     if (_selectedKategoriId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("❗Pilih kategori terlebih dahulu untuk menambahkan barang baru!")),
+        const SnackBar(content: Text("❗Pilih kategori terlebih dahulu untuk menambahkan barang baru!"),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -92,7 +100,9 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> with SingleTickerProv
     final success = await showInputBarangMasukDialog(finalSKU);
     if (success == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Barang baru berhasil disimpan")),
+        const SnackBar(content: Text("✅ Barang baru berhasil disimpan"),
+          backgroundColor: Colors.green,
+        ),
       );
       Navigator.pop(context, true);
     }

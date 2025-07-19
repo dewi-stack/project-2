@@ -62,6 +62,13 @@ class CategoryRequestController extends Controller
         } elseif ($request->action === 'delete') {
             $category = Category::find($request->category_id);
             if ($category) {
+                // ✅ Tambahan: Cek jika kategori sedang digunakan
+                if ($category->items()->exists()) {
+                    return response()->json([
+                        'message' => 'Kategori tidak dapat dihapus karena masih digunakan oleh barang.'
+                    ], 422);
+                }
+
                 $category->delete();
                 $request->update(['status' => 'approved']);
             }

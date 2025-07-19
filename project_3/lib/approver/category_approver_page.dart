@@ -81,7 +81,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
 
     try {
       final res = await http.get(
-        Uri.parse('https://saji.my.id/api/category-requests/global'),
+        Uri.parse('http://192.168.1.6:8000/api/category-requests/global'),
         headers: headers,
       );
 
@@ -101,7 +101,9 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
       if (mounted) {
         setState(() => isLoadingCategory = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal mengambil data pengajuan kategori')),
+          const SnackBar(content: Text('⚠️ Gagal mengambil data pengajuan kategori'),
+           backgroundColor: Colors.red, 
+          ),
         );
       }
     }
@@ -114,7 +116,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
 
     try {
       final res = await http.get(
-        Uri.parse('https://saji.my.id/api/subcategory-requests/global'),
+        Uri.parse('http://192.168.1.6:8000/api/subcategory-requests/global'),
         headers: headers,
       );
 
@@ -126,6 +128,11 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
       }
 
       final data = json.decode(res.body);
+      print('🔍 Subcategory Request Loaded:');
+      for (var d in data) {
+        print(d);
+      }
+
       setState(() {
         subcategoryRequests = data;
         isLoadingSubcategory = false;
@@ -134,7 +141,9 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
       if (mounted) {
         setState(() => isLoadingSubcategory = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal mengambil data pengajuan subkategori')),
+          const SnackBar(content: Text('⚠️ Gagal mengambil data pengajuan subkategori'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -145,16 +154,17 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
     required int id,
     required String status,
     required VoidCallback onSuccess,
+    String method = 'POST',
   }) async {
     final headers = await _getHeaders();
     if (headers.isEmpty) return;
 
-    final url = 'https://saji.my.id/api/$endpoint/$id/$status';
+    final url = 'http://192.168.1.6:8000/api/$endpoint/$id/$status';
 
     try {
       http.Response res;
 
-      if (endpoint == 'category-requests/global') {
+      if (method == 'POST') {
         res = await http.post(Uri.parse(url), headers: headers);
       } else {
         res = await http.put(Uri.parse(url), headers: headers);
@@ -172,20 +182,32 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Status pengajuan berhasil di${status == 'approve' ? 'setujui' : 'tolak'}.',
+              '✅ Status pengajuan berhasil di${status == 'approve' ? 'setujui' : 'tolak'}.',
             ),
             backgroundColor: Colors.green,
           ),
         );
+      } else if (res.statusCode == 422) {
+        // 🔥 Menampilkan pesan dari Laravel jika kategori tidak bisa dihapus
+        final data = json.decode(res.body);
+        final msg = data['message'] ?? 'Permintaan tidak dapat diproses.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.orange,
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memperbarui status pengajuan')),
+          const SnackBar(content: Text('⚠️ Gagal memperbarui status pengajuan'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memperbarui status pengajuan')),
+        const SnackBar(content: Text('⚠️ Gagal memperbarui status pengajuan'),
+            backgroundColor: Colors.red,
         );
       }
     }
@@ -288,42 +310,44 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
                     : categoryRequests.isEmpty
                         ? const Center(child: Text("Tidak ada pengajuan kategori."))
                         : ListView.builder(
-                            itemCount: categoryRequests.length,
-                            itemBuilder: (context, index) {
-                              final req = categoryRequests[index];
-                              final action = req['action'];
-                              final name = req['name'] ?? '-';
-                              final status = req['status'] ?? '-';
-                              final categoryName = req['category']?['name'] ?? '-';
+                          itemCount: categoryRequests.length,
+                          itemBuilder: (context, index) {
+                            final req = categoryRequests[index];
+                            final action = req['action'];
+                            final name = req['name'] ?? '-';
+                            final status = req['status'] ?? '-';
+                            final categoryName = req['category']?['name'] ?? '-';
 
-                              String title;
-                              if (action == 'add') {
-                                title = 'Pengajuan Tambah Kategori';
-                              } else if (action == 'edit') {
-                                title = 'Pengajuan Edit Kategori "$categoryName"';
-                              } else {
-                                title = 'Pengajuan Hapus Kategori "$categoryName"';
-                              }
+                            String title;
+                            if (action == 'add') {
+                              title = 'Pengajuan Tambah Kategori';
+                            } else if (action == 'edit') {
+                              title = 'Pengajuan Edit Kategori "$categoryName"';
+                            } else {
+                              title = 'Pengajuan Hapus Kategori "$categoryName"';
+                            }
 
-                              return buildRequestCard(
-                                title: title,
-                                subtitle: 'Nama: $name',
-                                status: status,
-                                onApprove: () => updateStatus(
-                                  endpoint: 'category-requests',
-                                  id: req['id'],
-                                  status: 'approve',
-                                  onSuccess: fetchCategoryRequests,
-                                ),
-                                onReject: () => updateStatus(
-                                  endpoint: 'category-requests',
-                                  id: req['id'],
-                                  status: 'reject',
-                                  onSuccess: fetchCategoryRequests,
-                                ),
-                              );
-                            },
-                          ),
+                            return buildRequestCard(
+                              title: title,
+                              subtitle: 'Nama: $name',
+                              status: status,
+                              onApprove: () => updateStatus(
+                                endpoint: 'category-requests',
+                                id: req['id'],
+                                status: 'approve',
+                                onSuccess: fetchCategoryRequests,
+                                method: 'POST', // ← Tambahkan ini
+                              ),
+                              onReject: () => updateStatus(
+                                endpoint: 'category-requests',
+                                id: req['id'],
+                                status: 'reject',
+                                onSuccess: fetchCategoryRequests,
+                                method: 'POST', // ← Tambahkan ini juga
+                              ),
+                            );
+                          },
+                        ),
                 isLoadingSubcategory
                     ? const Center(child: CircularProgressIndicator())
                     : subcategoryRequests.isEmpty
@@ -332,12 +356,23 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
                             itemCount: subcategoryRequests.length,
                             itemBuilder: (context, index) {
                               final req = subcategoryRequests[index];
+                              print('REQ: ${json.encode(req)}');
+                              final action = req['action'];
                               final categoryName = req['category']?['name'] ?? '-';
                               final subName = req['name'] ?? '-';
                               final status = req['status'] ?? '-';
 
+                              String title;
+                              if (action == 'add') {
+                                title = 'Pengajuan Tambah Subkategori ke "$categoryName"';
+                              } else if (action == 'edit') {
+                                title = 'Pengajuan Edit Subkategori "$subName" di "$categoryName"';
+                              } else {
+                                title = 'Pengajuan Hapus Subkategori "$subName" dari "$categoryName"';
+                              }
+
                               return buildRequestCard(
-                                title: 'Kategori: $categoryName',
+                                title: title,
                                 subtitle: 'Nama Subkategori: $subName',
                                 status: status,
                                 onApprove: () => updateStatus(
@@ -345,12 +380,14 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
                                   id: req['id'],
                                   status: 'approve',
                                   onSuccess: fetchSubcategoryRequests,
+                                  method: 'PUT',
                                 ),
                                 onReject: () => updateStatus(
                                   endpoint: 'subcategory-requests',
                                   id: req['id'],
                                   status: 'reject',
                                   onSuccess: fetchSubcategoryRequests,
+                                  method: 'PUT',
                                 ),
                               );
                             },

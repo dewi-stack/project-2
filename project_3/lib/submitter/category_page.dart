@@ -74,7 +74,7 @@ class _CategoryPageState extends State<CategoryPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('https://saji.my.id/api/categories'),
+      Uri.parse('http://192.168.1.6:8000/api/categories'),
       headers: headers,
     );
 
@@ -100,7 +100,7 @@ class _CategoryPageState extends State<CategoryPage> {
     };
 
     final response = await http.post(
-      Uri.parse('https://saji.my.id/api/category-requests'),
+      Uri.parse('http://192.168.1.6:8000/api/category-requests'),
       headers: headers,
       body: json.encode(body),
     );
@@ -109,12 +109,16 @@ class _CategoryPageState extends State<CategoryPage> {
       await handleLogout();
     } else if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengajuan berhasil dikirim')),
+        const SnackBar(content: Text('✅ Pengajuan berhasil dikirim'),
+          backgroundColor: Colors.green,
+        ),
       );
       fetchCategories();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal mengirim pengajuan')),
+        const SnackBar(content: Text('⚠️ Gagal mengirim pengajuan'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -124,7 +128,7 @@ class _CategoryPageState extends State<CategoryPage> {
     if (headers.isEmpty) return;
 
     final response = await http.post(
-      Uri.parse('https://saji.my.id/api/subcategory-requests'),
+      Uri.parse('http://192.168.1.6:8000/api/subcategory-requests'),
       headers: headers,
       body: json.encode({
         'category_id': categoryId,
@@ -137,39 +141,50 @@ class _CategoryPageState extends State<CategoryPage> {
       await handleLogout();
     } else if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Subkategori berhasil diajukan')),
+        const SnackBar(content: Text('✅ Subkategori berhasil diajukan'),
+          backgroundColor: Colors.green,
+        ),
       );
+      fetchCategories();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal mengajukan subkategori')),
+        const SnackBar(content: Text('⚠️ Gagal mengajukan subkategori'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
-  Future<void> ajukanHapusSubkategori(int subCategoryId, int categoryId) async {
+  Future<void> ajukanHapusSubkategori(int categoryId, int subCategoryId, String subCategoryName) async {
     final headers = await _getHeaders();
     if (headers.isEmpty) return;
 
+    final Map<String, dynamic> body = {
+      'category_id': categoryId,
+      'sub_category_id': subCategoryId,
+      'name': subCategoryName, //
+      'action': 'delete',
+    };
+
+    // ✅ Log lengkap
+    // print("📦 Akan dikirim:");
+    // print("  ➤ category_id = $categoryId (${categoryId.runtimeType})");
+    // print("  ➤ sub_category_id = $subCategoryId (${subCategoryId.runtimeType})");
+    // print("  ➤ sub_category_name = $subCategoryName");
+
     final response = await http.post(
-      Uri.parse('https://saji.my.id/api/subcategory-requests'),
+      Uri.parse('http://192.168.1.6:8000/api/subcategory-requests'),
       headers: headers,
-      body: json.encode({
-        'category_id': categoryId,
-        'sub_category_id': subCategoryId,
-        'action': 'delete',
-      }),
+      body: json.encode(body),
     );
 
-    if (response.statusCode == 401) {
-      await handleLogout();
-    } else if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Penghapusan subkategori diajukan')),
-      );
+    if (response.statusCode == 201) {
+      print("✅ Berhasil ajukan hapus subkategori: $subCategoryName");
+      fetchCategories();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menghapus subkategori')),
-      );
+      print("❌ Gagal ajukan hapus subkategori: $subCategoryName");
+      print("⛔ Status: ${response.statusCode}");
+      print("BODY: ${response.body}");
     }
   }
 
@@ -217,7 +232,9 @@ class _CategoryPageState extends State<CategoryPage> {
                 ajukanKategori(type: 'edit', name: newName, categoryId: id);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nama tidak berubah atau kosong')),
+                  const SnackBar(content: Text('⚠️ Nama tidak berubah atau kosong'),
+                    backgroundColor: Colors.orange,
+                  ),
                 );
               }
             },
@@ -273,26 +290,26 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  void showDeleteSubcategoryDialog(int subCategoryId, int categoryId) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Ajukan Penghapusan Subkategori'),
-        content: const Text('Yakin ingin menghapus subkategori ini?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              Navigator.pop(context);
-              ajukanHapusSubkategori(subCategoryId, categoryId);
-            },
-            child: const Text('Ajukan'),
-          ),
-        ],
-      ),
-    );
-  }
+  void showDeleteSubcategoryDialog(int categoryId, int subCategoryId, String subCategoryName) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Ajukan Penghapusan Subkategori'),
+      content: Text('Yakin ingin menghapus subkategori "$subCategoryName"?'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () {
+            Navigator.pop(context);
+            ajukanHapusSubkategori(categoryId, subCategoryId, subCategoryName);
+          },
+          child: const Text('Ajukan'),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -343,11 +360,10 @@ class _CategoryPageState extends State<CategoryPage> {
                         ),
                       ...subCategories.map<Widget>((sub) => ListTile(
                             leading: const Icon(Icons.subdirectory_arrow_right, color: Colors.indigo),
-                            title: Text(sub['name']),
+                            title: Text(sub['name'] ?? '-'),
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () =>
-                                  showDeleteSubcategoryDialog(sub['id'], kategori['id']),
+                              onPressed: () => showDeleteSubcategoryDialog(kategori['id'], sub['id'], sub['name']),
                             ),
                           )),
                       Padding(
@@ -357,8 +373,7 @@ class _CategoryPageState extends State<CategoryPage> {
                           child: TextButton.icon(
                             icon: const Icon(Icons.add, color: Colors.indigo),
                             label: const Text("Ajukan Subkategori"),
-                            onPressed: () =>
-                                showAddSubcategoryDialog(kategori['id'], kategori['name']),
+                            onPressed: () => showAddSubcategoryDialog(kategori['id'], kategori['name']),
                           ),
                         ),
                       ),

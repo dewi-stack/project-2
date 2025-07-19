@@ -21,16 +21,24 @@ class DashboardApproverPage extends StatefulWidget {
 
 class _DashboardApproverPageState extends State<DashboardApproverPage> {
   int _selectedIndex = 0;
-  List items = [];
-  bool isLoading = true;
 
+  // Untuk tabel stok dll.
+  List items = [];
+  bool isLoading = false;
   String? selectedCategory;
   String? selectedSubCategoryName;
   String? selectedJenis;
   String searchQuery = '';
-
   List<Map<String, dynamic>> categories = [];
   List<Map<String, dynamic>> subCategories = [];
+
+  // Baru: untuk pengajuan kategori/subkategori
+  List categoryRequests = [];
+  List subcategoryRequests = [];
+  bool isLoadingCategoryReq = false;
+  bool isLoadingSubcategoryReq = false;
+
+  final String baseUrl = 'http://192.168.1.6:8000/api';
 
   @override
   void initState() {
@@ -38,20 +46,27 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     _selectedIndex = widget.initialIndex;
     Future.microtask(() async {
       await checkRole();
-      fetchItems();
-      fetchCategories();
+      await fetchInitialData();
     });
   }
 
+  Future<void> fetchInitialData() async {
+    await Future.wait([
+      fetchItems(),
+      fetchCategories(),
+      fetchCategoryRequests(),
+      fetchSubcategoryRequests(),
+    ]);
+  }
+
+  /// Generic header
   Future<Map<String, String>> getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-
     if (token == null) {
       await handleForcedLogout();
       return {};
     }
-
     return {
       'Authorization': 'Bearer $token',
       'Accept': 'application/json',
@@ -62,8 +77,8 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
   bool isForcedLogout(http.Response res) {
     if (res.statusCode == 401 || res.statusCode == 403) {
       try {
-        final data = json.decode(res.body);
-        return data['forced_logout'] == true || data['message'] == 'Unauthenticated.';
+        final d = json.decode(res.body);
+        return d['forced_logout'] == true || d['message'] == 'Unauthenticated.';
       } catch (_) {
         return true;
       }
@@ -75,23 +90,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     if (!mounted) return;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text('Login Tidak Sah'),
-        content: const Text('Akun Anda digunakan di perangkat lain. Silakan login kembali.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 
   Future<void> checkRole() async {
@@ -108,7 +107,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (headers.isEmpty) return;
 
     final res = await http.get(
-      Uri.parse('https://saji.my.id/api/items'),
+      Uri.parse('http://192.168.1.6:8000/api/items'),
       headers: headers,
     );
     if (!mounted) return;
@@ -130,7 +129,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (headers.isEmpty) return;
 
     final res = await http.get(
-      Uri.parse('https://saji.my.id/api/categories'),
+      Uri.parse('http://192.168.1.6:8000/api/categories'),
       headers: headers,
     );
     if (!mounted) return;
@@ -156,7 +155,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (categoryId == null) return;
 
     final res = await http.get(
-      Uri.parse('https://saji.my.id/api/sub-categories?category_id=$categoryId'),
+      Uri.parse('http://192.168.1.6:8000/api/sub-categories?category_id=$categoryId'),
       headers: headers,
     );
     if (!mounted) return;
@@ -196,6 +195,43 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/login');
     }
+  }
+
+   Future<void> fetchCategoryRequests() async {
+    setState(() => isLoadingCategoryReq = true);
+    final h = await getHeaders();
+    if (h.isEmpty) return;
+    final res = await http.get(Uri.parse('$baseUrl/category-requests'), headers: h);
+    if (!mounted) return;
+    if (isForcedLogout(res)) return;
+    if (res.statusCode == 200) {
+      setState(() {
+        categoryRequests = json.decode(res.body);
+      });
+    }
+    setState(() => isLoadingCategoryReq = false);
+  }
+
+  Future<void> fetchSubcategoryRequests() async {
+    setState(() => isLoadingSubcategoryReq = true);
+    final h = await getHeaders();
+    if (h.isEmpty) return;
+    final res = await http.get(Uri.parse('$baseUrl/subcategory-requests'), headers: h);
+    if (!mounted) return;
+    if (isForcedLogout(res)) return;
+    if (res.statusCode == 200) {
+      setState(() {
+        subcategoryRequests = json.decode(res.body);
+      });
+    }
+    setState(() => isLoadingSubcategoryReq = false);
+  }
+
+  Future<void> fetchData() async {
+    await Future.wait([
+      fetchCategoryRequests(),
+      fetchSubcategoryRequests(),
+    ]);
   }
 
   List<Widget> getPages() {

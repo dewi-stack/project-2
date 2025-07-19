@@ -88,20 +88,26 @@ class _ScanBarcodeKeluarPageState extends State<ScanBarcodeKeluarPage> with Sing
         final success = await showKeluarStokDialog(existingItem);
         if (success == true && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Berhasil mengajukan pengurangan stok")),
+            const SnackBar(content: Text("✅ Berhasil mengajukan pengurangan stok"),
+              backgroundColor: Colors.green,
+            ),
           );
           Navigator.pop(context, true);
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Barang ditemukan, tapi tidak sesuai kategori/subkategori yang dipilih")),
+          const SnackBar(content: Text("⚠️ Barang ditemukan, tapi tidak sesuai kategori/subkategori yang dipilih"),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Barang tidak ditemukan dalam sistem")),
+      const SnackBar(content: Text("⚠️ Barang tidak ditemukan dalam sistem"),
+      backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -201,23 +207,29 @@ Future<bool?> showKeluarStokDialog(Map<String, dynamic> item) async {
 
             if (qty <= 0) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Jumlah tidak valid")),
+                const SnackBar(content: Text("⚠️ Jumlah tidak valid"),
+                  backgroundColor: Colors.red,
+                ),
               );
               return;
             }
 
-            final availableStock = item['stock'] ?? 0;
+            final availableStock = int.tryParse(item['stock'].toString()) ?? 0;
 
             if (availableStock <= 0) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Stok barang 0, tidak bisa dikurangi")),
+                const SnackBar(content: Text("⚠️ Stok barang 0, tidak bisa dikurangi"),
+                  backgroundColor: Colors.red,
+                ),
               );
               return;
             }
 
             if (qty > availableStock) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Jumlah melebihi stok tersedia ($availableStock ${item['unit'] ?? ''})")),
+                SnackBar(content: Text("⚠️ Jumlah melebihi stok tersedia ($availableStock ${item['unit'] ?? ''})"),
+                  backgroundColor: Colors.orange,
+                ),
               );
               return;
             }
@@ -225,7 +237,9 @@ Future<bool?> showKeluarStokDialog(Map<String, dynamic> item) async {
             final stockRequests = item['stock_requests'] as List<dynamic>? ?? [];
             if (!stockRequests.any((req) => req['status'] == 'approved')) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Barang belum disetujui, tidak bisa dikurangi")),
+                const SnackBar(content: Text("⚠️ Barang belum disetujui, tidak bisa dikurangi"),
+                  backgroundColor: Colors.red,
+                ),
               );
               return;
             }

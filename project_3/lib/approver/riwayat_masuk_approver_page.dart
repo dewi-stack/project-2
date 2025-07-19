@@ -55,7 +55,9 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/login');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sesi Anda telah berakhir. Silakan login kembali.')),
+      const SnackBar(content: Text('⚠️ Sesi Anda telah berakhir. Silakan login kembali.'),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 
@@ -64,7 +66,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('https://saji.my.id/api/me'),
+      Uri.parse('http://192.168.1.6:8000/api/me'),
       headers: headers,
     );
 
@@ -78,7 +80,9 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memverifikasi token.')),
+          const SnackBar(content: Text('⚠️ Gagal memverifikasi token.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -90,7 +94,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('https://saji.my.id/api/stock-requests'),
+      Uri.parse('http://192.168.1.6:8000/api/stock-requests'),
       headers: headers,
     );
 
@@ -112,7 +116,9 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
       setState(() => isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memuat data')),
+          const SnackBar(content: Text('⚠️ Gagal memuat data'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -123,7 +129,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     if (headers.isEmpty) return;
 
     final response = await http.put(
-      Uri.parse('https://saji.my.id/api/stock-requests/$requestId/approve'),
+      Uri.parse('http://192.168.1.6:8000/api/stock-requests/$requestId/approve'),
       headers: headers,
       body: jsonEncode({'status': action}),
     );
@@ -137,13 +143,20 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
       await fetchPendingStockRequests();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Permintaan berhasil ${action == 'approved' ? 'disetujui' : 'ditolak'}')),
+          SnackBar(
+            content: Text(
+              '✅ Permintaan berhasil ${action == 'approved' ? 'disetujui' : 'ditolak'}',
+            ),
+            backgroundColor: action == 'approved' ? Colors.green : Colors.red,
+          ),
         );
       }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memproses permintaan: ${response.body}')),
+          SnackBar(content: Text('⚠️ Gagal memproses permintaan: ${response.body}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

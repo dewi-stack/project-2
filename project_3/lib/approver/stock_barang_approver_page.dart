@@ -42,7 +42,7 @@ class StokBarangApproverPage extends StatelessWidget {
     }
 
     final response = await http.put(
-      Uri.parse('https://saji.my.id/api/stock-requests/$requestId/approve'),
+      Uri.parse('http://192.168.1.6:8000/api/stock-requests/$requestId/approve'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -71,32 +71,6 @@ class StokBarangApproverPage extends StatelessWidget {
         const SnackBar(content: Text('Gagal memperbarui status.')),
       );
     }
-  }
-
-  void _confirmDelete(BuildContext context, Map<String, dynamic> item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Konfirmasi Penghapusan'),
-        content: Text('Apakah Anda yakin ingin menghapus item "${item['name']}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur hapus belum diimplementasikan.')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -250,7 +224,7 @@ class StokBarangApproverPage extends StatelessWidget {
   Widget _buildMutasiStatusRichWidget(Map<String, dynamic> request, String unit) {
     final String type = request['type'];
     final String status = request['status'];
-    final int qty = request['quantity'] ?? 0;
+    final int qty = int.tryParse(request['quantity'].toString()) ?? 0;
 
     // Menentukan warna dan ikon berdasarkan status/type
     Color? bgColor;
@@ -332,7 +306,7 @@ class StokBarangApproverPage extends StatelessWidget {
   }
 
   Widget buildItemCard(BuildContext context, Map<String, dynamic> item) {
-    final int stock = (item['stock'] ?? 0);
+    final int stock = int.tryParse(item['stock'].toString()) ?? 0;
     final bool isOutOfStock = stock == 0;
     final String unit = item['unit'] ?? 'unit';
 
@@ -465,16 +439,6 @@ class StokBarangApproverPage extends StatelessWidget {
               ],
             ),
 
-            /// Tombol Hapus
-            Positioned(
-              top: 0,
-              right: 0,
-              child: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                tooltip: 'Hapus item',
-                onPressed: () => _confirmDelete(context, item),
-              ),
-            ),
           ],
         ),
       ),

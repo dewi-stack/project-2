@@ -44,7 +44,7 @@ class _RiwayatKeluarPageState extends State<RiwayatKeluarPage> {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
-        Uri.parse('https://saji.my.id/api/items'),
+        Uri.parse('http://192.168.1.6:8000/api/items'),
         headers: headers,
       );
 
@@ -62,7 +62,7 @@ class _RiwayatKeluarPageState extends State<RiwayatKeluarPage> {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
-        Uri.parse('https://saji.my.id/api/stock-requests/submitter'),
+        Uri.parse('http://192.168.1.6:8000/api/stock-requests/submitter'),
         headers: headers,
       );
 

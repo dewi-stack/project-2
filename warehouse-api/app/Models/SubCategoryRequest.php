@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class SubCategoryRequest extends Model
 {
     protected $fillable = [
-        'name',
         'category_id',
+        'action',
+        'name',
+        'sub_category_id',
         'status',
         'requested_by',
     ];

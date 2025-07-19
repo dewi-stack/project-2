@@ -83,30 +83,37 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     await fetchItems();
   }
 
-  Future<void> fetchItems() async {
+    Future<void> fetchItems() async {
     if (!mounted) return;
     setState(() => isLoading = true);
 
-    final headers = await getHeaders();
-    if (headers.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('https://saji.my.id/api/items'),
-      headers: headers,
+      Uri.parse('http://192.168.1.6:8000/api/items'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
     );
 
     if (!mounted) return;
 
-    if (isForcedLogout(response)) {
-      await handleForcedLogout();
-    } else if (response.statusCode == 200) {
+    if (response.statusCode == 200) {
       setState(() {
         items = json.decode(response.body);
         isLoading = false;
       });
-    } else {
-      print('Gagal memuat data items: ${response.statusCode} - ${response.body}');
-      setState(() => isLoading = false);
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login tidak valid. Silakan login ulang.')),
+        );
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
     }
   }
 
@@ -147,7 +154,7 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
       // Hitung total stok berdasarkan semua mutasi sampai tanggal posisi
       int totalStock = 0;
       for (var req in approvedRequests) {
-        final int qty = (req['quantity'] ?? 0).toInt();
+        final int qty = int.tryParse(req['quantity'].toString()) ?? 0;
         if (req['type'] == 'increase') {
           totalStock += qty;
         } else if (req['type'] == 'decrease') {
@@ -181,8 +188,8 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
         final parsedDate = DateTime.tryParse(dateStr);
         if (parsedDate == null) continue;
 
-        final inRange = parsedDate.isAfter(startDate!.subtract(const Duration(days: 1))) &&
-                        parsedDate.isBefore(endDate!.add(const Duration(days: 1)));
+        final inRange = !parsedDate.isBefore(startDate!) && !parsedDate.isAfter(endDate!);
+
 
         if (inRange) {
           result.add({'item': item, 'request': req});
@@ -218,7 +225,13 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     if (picked != null) {
       setState(() {
         startDate = picked.start;
-        endDate = picked.end;
+        // Perhatikan perubahan di sini:
+        endDate = DateTime(
+          picked.end.year,
+          picked.end.month,
+          picked.end.day,
+          23, 59, 59,
+        );
       });
     }
   }
@@ -245,7 +258,9 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     if (kategoriMap.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak ada data posisi stok yang disetujui.')),
+          const SnackBar(content: Text('⚠️ Tidak ada data posisi stok yang disetujui.'),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
       workbook.dispose();
@@ -345,7 +360,9 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     if (kategoriMap.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak ada data mutasi stok yang disetujui.')),
+          const SnackBar(content: Text('⚠️ Tidak ada data mutasi stok yang disetujui.'),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
       workbook.dispose();
@@ -397,7 +414,7 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
         final description = req['description'] ?? '-';
         final isIncrease = req['type'] == 'increase';
         final isDecrease = req['type'] == 'decrease';
-        final stockValue = (req['quantity'] ?? 0).toDouble();
+        final stockValue = double.tryParse(req['quantity'].toString()) ?? 0.0;
 
         // Tentukan user
         final user = req?['user'];
@@ -436,6 +453,7 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     await saveExcel(bytes, filename);
   }
 
+
   Future<void> saveExcel(List<int> bytes, String filename) async {
     if (kIsWeb) {
       final blob = html.Blob([Uint8List.fromList(bytes)]);
@@ -447,7 +465,9 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Berhasil diekspor dan diunduh.')),
+          const SnackBar(content: Text('✅ Berhasil diekspor dan diunduh.'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } else {
@@ -469,7 +489,9 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
       if (!permissionGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Izin penyimpanan tidak diberikan')),
+            const SnackBar(content: Text('⚠️ Izin penyimpanan tidak diberikan'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
         return;
@@ -485,13 +507,17 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Berhasil diekspor ke: ${file.path}')),
+            SnackBar(content: Text('✅ Berhasil diekspor ke: ${file.path}'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menyimpan file: $e')),
+            SnackBar(content: Text('⚠️ Gagal menyimpan file: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -666,7 +692,10 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
                 child: const Text('Batal'),
               ),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () {
+                  Navigator.of(context).pop(false); // Tutup dialog
+                  Navigator.of(context).pushReplacementNamed('/login'); // Arahkan ke login
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                 ),

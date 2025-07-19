@@ -268,11 +268,11 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<bool> _onWillPop() async {
-    final shouldExit = await showDialog<bool>(
+    final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Keluar Aplikasi'),
-        content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
+        content: const Text('Apakah Anda yakin ingin keluar dan kembali ke halaman login?'),
         actions: [
           TextButton(
             child: const Text('Batal'),
@@ -281,13 +281,21 @@ class _DashboardPageState extends State<DashboardPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Keluar'),
+            child: const Text('Ya, Kembali ke Login'),
           ),
         ],
       ),
     );
 
-    return shouldExit ?? false;
+    if (shouldLogout == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (!mounted) return false;
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+      return false; // Jangan keluar dari app langsung, cukup arahkan ke login
+    }
+
+    return false;
   }
 
   Widget buildDrawer() {

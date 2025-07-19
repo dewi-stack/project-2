@@ -181,7 +181,7 @@ class StokBarangPage extends StatelessWidget {
   }
 
   Widget buildItemCard(BuildContext context, Map<String, dynamic> item) {
-    final int stock = (item['stock'] ?? 0);
+    final int stock = int.tryParse(item['stock'].toString()) ?? 0;
     final bool isOutOfStock = stock == 0;
     final String unit = item['unit'] ?? 'unit';
 
@@ -381,7 +381,7 @@ class StokBarangPage extends StatelessWidget {
   Widget _buildMutasiStatusRichWidget(Map<String, dynamic> request, String unit) {
     final String type = request['type'];
     final String status = request['status'];
-    final int qty = request['quantity'] ?? 0;
+    final int qty = int.tryParse(request['quantity'].toString()) ?? 0;
 
     // Menentukan warna dan ikon berdasarkan status/type
     Color? bgColor;

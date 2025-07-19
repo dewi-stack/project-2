@@ -5,48 +5,32 @@ namespace App\Http\Controllers;
 use App\Models\SubCategory;
 use App\Models\SubCategoryRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SubCategoryRequestController extends Controller
 {
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'action' => 'required|in:add,delete',
-            'name' => 'required_if:action,add',
-            'sub_category_id' => 'required_if:action,delete|exists:sub_categories,id',
-        ]);
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'category_id' => 'required|exists:categories,id',
+        'action' => 'required|in:add,delete',
+        'name' => 'required_if:action,add|string|nullable',
+        'sub_category_id' => 'required_if:action,delete|exists:sub_categories,id|nullable',
+    ]);
 
-        $user = auth()->user();
+    $user = auth()->user();
 
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+    $requestModel = new SubCategoryRequest();
+    $requestModel->category_id = $validated['category_id'];
+    $requestModel->action = $validated['action'];
+    $requestModel->name = $validated['name'] ?? null;
+    $requestModel->sub_category_id = $validated['sub_category_id'] ?? null;
+    $requestModel->status = 'pending';
+    $requestModel->requested_by = $user->id;
+    $requestModel->save();
 
-        $requestData = [
-            'category_id' => $validated['category_id'],
-            'action' => $validated['action'],
-            'status' => 'pending',
-            'requested_by' => $user->id,
-        ];
-
-        if ($validated['action'] === 'add') {
-            $requestData['name'] = $validated['name'];
-        } elseif ($validated['action'] === 'delete') {
-            $requestData['sub_category_id'] = $validated['sub_category_id'];
-
-            // Ambil nama subkategori agar kolom 'name' tidak NULL
-            $sub = SubCategory::find($validated['sub_category_id']);
-            if (!$sub) {
-                return response()->json(['message' => 'Subkategori tidak ditemukan'], 404);
-            }
-            $requestData['name'] = $sub->name; // <- ini mencegah error 1048
-        }
-
-        $subCategoryRequest = SubCategoryRequest::create($requestData);
-
-        return response()->json($subCategoryRequest, 201);
-    }
+    return response()->json(['message' => 'Permintaan berhasil diajukan'], 201);
+}
 
     public function index()
     {
@@ -54,35 +38,58 @@ class SubCategoryRequestController extends Controller
     }
 
     public function approve($id)
-    {
-        $request = SubCategoryRequest::findOrFail($id);
+{
+    $request = SubCategoryRequest::findOrFail($id);
 
-        if ($request->action === 'add') {
-            $sub = SubCategory::create([
-                'name' => $request->name,
-                'category_id' => $request->category_id,
-            ]);
-        } elseif ($request->action === 'delete' && $request->sub_category_id) {
-            $sub = SubCategory::find($request->sub_category_id);
-            if ($sub) {
-                $sub->delete();
-            }
+    if ($request->action === 'add') {
+        $sub = SubCategory::create([
+            'name' => $request->name,
+            'category_id' => $request->category_id,
+        ]);
+
+        // ✅ Simpan ID hasil create ke dalam request
+        $request->sub_category_id = $sub->id;
+
+    } elseif ($request->action === 'delete' && $request->sub_category_id) {
+        $sub = SubCategory::find($request->sub_category_id);
+        if ($sub) {
+            $sub->delete();
         }
-
-        $request->status = 'approved';
-        $request->save();
-
-        return response()->json(['message' => 'Disetujui']);
     }
+
+    $request->status = 'approved';
+    $request->save();
+
+    return response()->json(['message' => 'Disetujui', 'sub_category_id' => $request->sub_category_id]);
+}
+
 
     public function reject($id)
-    {
-        $request = SubCategoryRequest::findOrFail($id);
-        $request->status = 'rejected';
-        $request->save();
+{
+    $requestModel = SubCategoryRequest::findOrFail($id);
 
-        return response()->json(['message' => 'Ditolak']);
+    if ($requestModel->status !== 'pending') {
+        return response()->json(['message' => 'Permintaan sudah diproses sebelumnya'], 400);
     }
+
+    $requestModel->status = 'rejected';
+    $requestModel->save();
+
+    return response()->json(['message' => 'Permintaan berhasil ditolak']);
+}
+
+public function destroy($id)
+{
+    $requestModel = SubCategoryRequest::findOrFail($id);
+
+    if ($requestModel->status === 'approved') {
+        return response()->json(['message' => 'Permintaan yang sudah disetujui tidak dapat dihapus'], 403);
+    }
+
+    $requestModel->delete();
+
+    return response()->json(['message' => 'Permintaan berhasil dihapus']);
+}
 
     public function globalRequests()
     {

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 class AuthService {
-  static const String apiUrl = 'https://saji.my.id/api'; // Ganti sesuai server
+  static const String apiUrl = 'http://192.168.1.6:8000//api'; // Ganti sesuai server
 
   /// 🔐 Login dan simpan data user
   static Future<bool> login(String email, String password) async {
