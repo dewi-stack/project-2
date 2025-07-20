@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter/foundation.dart';
 import 'category_approver_page.dart';
 import 'export_approver_page.dart';
 import 'riwayat_masuk_approver_page.dart';
@@ -38,7 +38,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
   bool isLoadingCategoryReq = false;
   bool isLoadingSubcategoryReq = false;
 
-  final String baseUrl = 'http://192.168.1.6:8000/api';
+  final String baseUrl = 'https://saji.my.id/api';
 
   @override
   void initState() {
@@ -107,7 +107,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (headers.isEmpty) return;
 
     final res = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/items'),
+      Uri.parse('https://saji.my.id/api/items'),
       headers: headers,
     );
     if (!mounted) return;
@@ -129,7 +129,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (headers.isEmpty) return;
 
     final res = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
+      Uri.parse('https://saji.my.id/api/categories'),
       headers: headers,
     );
     if (!mounted) return;
@@ -155,7 +155,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     if (categoryId == null) return;
 
     final res = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/sub-categories?category_id=$categoryId'),
+      Uri.parse('https://saji.my.id/api/sub-categories?category_id=$categoryId'),
       headers: headers,
     );
     if (!mounted) return;
@@ -170,31 +170,68 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
   }
 
   Future<void> logout() async {
-    final confirm = await showDialog<bool>(
+    final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Konfirmasi Logout'),
         content: const Text('Apakah Anda yakin ingin keluar dari akun?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Batal'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text('Ya, Logout'),
+            child: const Text(
+              'Ya, Logout',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
     );
 
-    if (confirm == true) {
+    if (shouldLogout == true) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/login');
     }
+  }
+
+  Future<bool> _onWillPop() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Keluar Aplikasi'),
+        content: const Text('Apakah Anda yakin ingin keluar dan kembali ke halaman login?'),
+        actions: [
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Ya, Kembali ke Login',
+              style: TextStyle(color: Colors.white), // 👈 warna teks putih
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (!mounted) return false;
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+      return false; // Jangan keluar dari app langsung, cukup arahkan ke login
+    }
+
+    return false;
   }
 
    Future<void> fetchCategoryRequests() async {
@@ -265,7 +302,7 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
         backgroundColor: Colors.indigo,
@@ -301,6 +338,14 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
       drawer: buildDrawer(),
       body: getPages()[_selectedIndex],
     );
+
+    // 💡 Hanya pasang WillPopScope jika bukan di Web
+    return kIsWeb
+        ? scaffold
+        : WillPopScope(
+            onWillPop: _onWillPop,
+            child: scaffold,
+          );
   }
 
   Widget buildDrawer() {

@@ -66,7 +66,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/me'),
+      Uri.parse('https://saji.my.id/api/me'),
       headers: headers,
     );
 
@@ -94,7 +94,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/stock-requests'),
+      Uri.parse('https://saji.my.id/api/stock-requests'),
       headers: headers,
     );
 
@@ -129,7 +129,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
     if (headers.isEmpty) return;
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.6:8000/api/stock-requests/$requestId/approve'),
+      Uri.parse('https://saji.my.id/api/stock-requests/$requestId/approve'),
       headers: headers,
       body: jsonEncode({'status': action}),
     );

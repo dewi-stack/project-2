@@ -91,7 +91,7 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/items'),
+      Uri.parse('https://saji.my.id/api/items'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -676,7 +676,7 @@ class _ExportApproverPageState extends State<ExportApproverPage> {
     );
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {

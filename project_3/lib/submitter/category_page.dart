@@ -74,7 +74,7 @@ class _CategoryPageState extends State<CategoryPage> {
     if (headers.isEmpty) return;
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.6:8000/api/categories'),
+      Uri.parse('https://saji.my.id/api/categories'),
       headers: headers,
     );
 
@@ -100,7 +100,7 @@ class _CategoryPageState extends State<CategoryPage> {
     };
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/category-requests'),
+      Uri.parse('https://saji.my.id/api/category-requests'),
       headers: headers,
       body: json.encode(body),
     );
@@ -128,7 +128,7 @@ class _CategoryPageState extends State<CategoryPage> {
     if (headers.isEmpty) return;
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/subcategory-requests'),
+      Uri.parse('https://saji.my.id/api/subcategory-requests'),
       headers: headers,
       body: json.encode({
         'category_id': categoryId,
@@ -155,34 +155,45 @@ class _CategoryPageState extends State<CategoryPage> {
     }
   }
 
-  Future<void> ajukanHapusSubkategori(int categoryId, int subCategoryId, String subCategoryName) async {
+  Future<void> ajukanHapusSubkategori(
+    BuildContext context,
+    int categoryId,
+    int subCategoryId,
+    String subCategoryName,
+  ) async {
     final headers = await _getHeaders();
     if (headers.isEmpty) return;
 
     final Map<String, dynamic> body = {
       'category_id': categoryId,
       'sub_category_id': subCategoryId,
-      'name': subCategoryName, //
+      'name': subCategoryName,
       'action': 'delete',
     };
 
-    // ✅ Log lengkap
-    // print("📦 Akan dikirim:");
-    // print("  ➤ category_id = $categoryId (${categoryId.runtimeType})");
-    // print("  ➤ sub_category_id = $subCategoryId (${subCategoryId.runtimeType})");
-    // print("  ➤ sub_category_name = $subCategoryName");
-
     final response = await http.post(
-      Uri.parse('http://192.168.1.6:8000/api/subcategory-requests'),
+      Uri.parse('https://saji.my.id/api/subcategory-requests'),
       headers: headers,
       body: json.encode(body),
     );
 
     if (response.statusCode == 201) {
-      print("✅ Berhasil ajukan hapus subkategori: $subCategoryName");
-      fetchCategories();
+      // ✅ Jika berhasil
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Permintaan hapus subkategori berhasil diajukan'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      fetchCategories(); // panggil ulang data
     } else {
-      print("❌ Gagal ajukan hapus subkategori: $subCategoryName");
+      // ❌ Jika gagal
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Gagal mengajukan hapus subkategori ($subCategoryName)'),
+          backgroundColor: Colors.red,
+        ),
+      );
       print("⛔ Status: ${response.statusCode}");
       print("BODY: ${response.body}");
     }
@@ -301,8 +312,7 @@ class _CategoryPageState extends State<CategoryPage> {
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
           onPressed: () {
-            Navigator.pop(context);
-            ajukanHapusSubkategori(categoryId, subCategoryId, subCategoryName);
+            ajukanHapusSubkategori(context, categoryId, subCategoryId, subCategoryName);
           },
           child: const Text('Ajukan'),
         ),

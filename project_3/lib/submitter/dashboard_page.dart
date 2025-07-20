@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import 'category_page.dart';
 import 'export_page.dart';
@@ -180,7 +180,10 @@ class _DashboardPageState extends State<DashboardPage> {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text('Ya, Logout'),
+            child: const Text(
+              'Ya, Logout',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -226,45 +229,50 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        appBar: AppBar(
-          titleSpacing: 0,
-          backgroundColor: Colors.indigoAccent,
-          foregroundColor: Colors.white,
-          elevation: 4,
-          title: Row(
-            children: [
-              const SizedBox(width: 8),
-              Image.asset(
-                'assets/images/pt_agro_jaya.png',
-                height: 32,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'SAJI',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            Tooltip(
-              message: "Logout",
-              child: IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: logout,
+    final scaffold = Scaffold(
+      appBar: AppBar(
+        titleSpacing: 0,
+        backgroundColor: Colors.indigoAccent,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        title: Row(
+          children: [
+            const SizedBox(width: 8),
+            Image.asset(
+              'assets/images/pt_agro_jaya.png',
+              height: 32,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'SAJI',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
           ],
         ),
-        drawer: buildDrawer(),
-        body: getPages()[_selectedIndex],
+        actions: [
+          Tooltip(
+            message: "Logout",
+            child: IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: logout,
+            ),
+          ),
+        ],
       ),
+      drawer: buildDrawer(),
+      body: getPages()[_selectedIndex],
     );
+
+    // 💡 Hanya pasang WillPopScope jika bukan di Web
+    return kIsWeb
+        ? scaffold
+        : WillPopScope(
+            onWillPop: _onWillPop,
+            child: scaffold,
+          );
   }
 
   Future<bool> _onWillPop() async {
@@ -281,7 +289,10 @@ class _DashboardPageState extends State<DashboardPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Ya, Kembali ke Login'),
+            child: const Text(
+              'Ya, Kembali ke Login',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

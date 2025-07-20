@@ -81,7 +81,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
 
     try {
       final res = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/category-requests/global'),
+        Uri.parse('https://saji.my.id/api/category-requests/global'),
         headers: headers,
       );
 
@@ -116,7 +116,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
 
     try {
       final res = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/subcategory-requests/global'),
+        Uri.parse('https://saji.my.id/api/subcategory-requests/global'),
         headers: headers,
       );
 
@@ -159,7 +159,7 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
     final headers = await _getHeaders();
     if (headers.isEmpty) return;
 
-    final url = 'http://192.168.1.6:8000/api/$endpoint/$id/$status';
+    final url = 'https://saji.my.id/api/$endpoint/$id/$status';
 
     try {
       http.Response res;
@@ -260,14 +260,20 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
                     onPressed: onApprove,
                     icon: const Icon(Icons.check),
                     label: const Text('Setujui'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: onReject,
                     icon: const Icon(Icons.close),
                     label: const Text('Tolak'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                 ],
               ),
