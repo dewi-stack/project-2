@@ -185,6 +185,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
                     final item = req['item'];
                     final createdAt = DateFormat('dd/MM/yy').format(DateTime.parse(req['created_at']));
                     final int currentStock = parseInt(item['stock']);
+                    final unit = item['unit'] ?? '-';
 
 
                     return Card(
@@ -232,9 +233,9 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
                             const SizedBox(height: 12),
 
                             // SKU
-                            RowInfo(icon: Icons.qr_code, label: "SKU", value: item['sku']),
+                            RowInfo(icon: Icons.qr_code, label: "Kode Barang", value: item['sku']),
                             // Jumlah
-                            RowInfo(icon: Icons.remove_circle, label: "Jumlah Keluar", value: "${req['quantity']} unit"),
+                            RowInfo(icon: Icons.remove_circle, label: "Jumlah Keluar", value: "${req['quantity']} $unit"),
                             // Keterangan
                             RowInfo(
                                 icon: Icons.description_outlined,
@@ -297,7 +298,6 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
                 ),
     );
   }
-
 }
 
 class RowInfo extends StatelessWidget {

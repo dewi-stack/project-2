@@ -70,7 +70,7 @@
           <h5 class="card-title text-primary">{{ $item->name }}</h5>
           <p class="mb-1">
             <strong>Kode Barang:</strong> {{ $item->sku }}<br>
-            <strong>Stok:</strong> {{ $item->stock }} Unit<br>
+            <strong>Stok:</strong> {{ $item->stock }} {{ $item->unit ?? 'Unit' }}<br>
 
             {{-- Mutasi Terakhir --}}
             @if ($latestMutation)
@@ -92,7 +92,7 @@
               @endphp
               <strong>Mutasi:</strong>
               <span class="badge {{ $badge }}">
-                {{ $statusLabel }} {{ $icon }} {{ $latestMutation->quantity }} Unit
+                {{ $statusLabel }} {{ $icon }} {{ $latestMutation->quantity }} {{ $item->unit ?? 'Unit' }}
                 ({{ ucfirst($latestMutation->status === 'approved' ? 'Disetujui' : ($latestMutation->status === 'pending' ? 'Menunggu' : 'Ditolak')) }})
               </span><br>
             @endif

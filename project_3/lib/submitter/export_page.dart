@@ -471,6 +471,40 @@ class _ExportPageState extends State<ExportPage> {
     }
   }
 
+  Future<bool> _onWillPop() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Keluar Aplikasi'),
+        content: const Text('Apakah Anda yakin ingin keluar dan kembali ke halaman login?'),
+        actions: [
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Ya, Kembali ke Login',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (!mounted) return false;
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+      return false; // Jangan keluar dari app langsung, cukup arahkan ke login
+    }
+
+    return false;
+  }
+
   Widget buildPosisiStokTab() {
     final dateFormat = DateFormat('dd-MM-yyyy');
 
@@ -626,35 +660,7 @@ class _ExportPageState extends State<ExportPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        // Tampilkan dialog konfirmasi
-        final result = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Konfirmasi Keluar'),
-            content: const Text('Apakah Anda yakin ingin keluar dari halaman ini?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Batal'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false); // Tutup dialog
-                  Navigator.of(context).pushReplacementNamed('/login'); // Arahkan ke login
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
-                child: const Text('Keluar'),
-              ),
-            ],
-          ),
-        );
-
-        // Jika user pilih keluar (true), maka izinkan pop
-        return result ?? false;
-      },
+      onWillPop: _onWillPop,
       child: DefaultTabController(
         length: 2,
         child: Column(

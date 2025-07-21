@@ -229,8 +229,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold(
-      appBar: AppBar(
+  final scaffold = Scaffold(
+    appBar: AppBar(
         titleSpacing: 0,
         backgroundColor: Colors.indigoAccent,
         foregroundColor: Colors.white,
@@ -265,48 +265,8 @@ class _DashboardPageState extends State<DashboardPage> {
       drawer: buildDrawer(),
       body: getPages()[_selectedIndex],
     );
-
-    // 💡 Hanya pasang WillPopScope jika bukan di Web
-    return kIsWeb
-        ? scaffold
-        : WillPopScope(
-            onWillPop: _onWillPop,
-            child: scaffold,
-          );
-  }
-
-  Future<bool> _onWillPop() async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Keluar Aplikasi'),
-        content: const Text('Apakah Anda yakin ingin keluar dan kembali ke halaman login?'),
-        actions: [
-          TextButton(
-            child: const Text('Batal'),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Ya, Kembali ke Login',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLogout == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      if (!mounted) return false;
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
-      return false; // Jangan keluar dari app langsung, cukup arahkan ke login
-    }
-
-    return false;
+    
+    return scaffold;
   }
 
   Widget buildDrawer() {

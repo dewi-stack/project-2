@@ -107,6 +107,7 @@ class _RiwayatMasukPageState extends State<RiwayatMasukPage> {
                       final status = item['status'];
                       final createdAt = item['created_at']?.toString().substring(0, 10) ?? '-';
                       final keterangan = item['description'] ?? '-';
+                      final unit = item['unit'] ?? '-';
 
                       // Warna & ikon berdasarkan status
                       Color statusColor;
@@ -162,7 +163,7 @@ class _RiwayatMasukPageState extends State<RiwayatMasukPage> {
                               Row(children: [
                                 const Icon(Icons.add_circle_outline, color: Colors.purple),
                                 const SizedBox(width: 6),
-                                Text("Jumlah Masuk: $quantity unit",
+                                Text("Jumlah Masuk: $quantity $unit",
                                     style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
                               ]),
 

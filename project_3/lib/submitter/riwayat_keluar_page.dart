@@ -114,6 +114,7 @@ class _RiwayatKeluarPageState extends State<RiwayatKeluarPage> {
                       final createdAt = req['created_at']?.toString().substring(0, 10) ?? '-';
                       final description = req['description'] ?? '-';
                       final status = req['status'] ?? '-';
+                      final unit = item['unit'] ?? '-';
 
                       Color statusColor;
                       IconData statusIcon;
@@ -168,7 +169,7 @@ class _RiwayatKeluarPageState extends State<RiwayatKeluarPage> {
                               Row(children: [
                                 const Icon(Icons.remove_circle_outline, color: Colors.red),
                                 const SizedBox(width: 6),
-                                Text("Jumlah Keluar: $quantity unit",
+                                Text("Jumlah Keluar: $quantity $unit",
                                     style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                               ]),
 

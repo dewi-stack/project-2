@@ -184,6 +184,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
                     final type = request['type'];
                     final tanggal = DateFormat('dd/MM/yy').format(DateTime.parse(request['created_at']));
                     final isInitial = type == 'initial';
+                    final unit = item['unit'] ?? '-';
 
                     return Card(
                       elevation: 6,
@@ -232,7 +233,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
 
                             // Info baris per baris
                             InfoRow(icon: Icons.qr_code, label: 'SKU', value: item?['sku']),
-                            InfoRow(icon: Icons.format_list_numbered, label: 'Jumlah', value: '${request['quantity']} unit'),
+                            InfoRow(icon: Icons.format_list_numbered, label: 'Jumlah', value: '${request['quantity']} $unit'),
                             InfoRow(icon: Icons.description_outlined, label: 'Keterangan', value: request['description'] ?? '-', isMultiLine: true),
                             InfoRow(icon: Icons.location_on_outlined, label: 'Lokasi', value: item?['location']),
                             InfoRow(icon: Icons.date_range, label: 'Tanggal Pengajuan', value: tanggal),
