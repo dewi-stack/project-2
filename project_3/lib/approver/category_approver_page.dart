@@ -287,122 +287,121 @@ class _CategoryApproverPageState extends State<CategoryApproverPage> with Single
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
-        children: [
-          Container(
-            color: Colors.indigo,
-            child: SafeArea(
-              child: Column(
+          children: [
+            Container(
+              color: Colors.indigo,
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: Colors.amberAccent,
+                      unselectedLabelColor: Colors.white70,
+                      indicatorColor: Colors.amberAccent,
+                      tabs: const [
+                        Tab(text: "Kategori"),
+                        Tab(text: "Subkategori"),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
                 children: [
-                  TabBar(
-                    controller: _tabController,
-                    labelColor: Colors.amberAccent,
-                    unselectedLabelColor: Colors.white70,
-                    indicatorColor: Colors.amberAccent,
-                    tabs: const [
-                      Tab(text: "Kategori"),
-                      Tab(text: "Subkategori"),
-                    ],
-                  ),
+                  isLoadingCategory
+                      ? const Center(child: CircularProgressIndicator())
+                      : categoryRequests.isEmpty
+                          ? const Center(child: Text("Tidak ada pengajuan kategori."))
+                          : ListView.builder(
+                              itemCount: categoryRequests.length,
+                              itemBuilder: (context, index) {
+                                final req = categoryRequests[index];
+                                final action = req['action'];
+                                final name = req['name'] ?? '-';
+                                final status = req['status'] ?? '-';
+                                final categoryName = req['category']?['name'] ?? '-';
+
+                                String title;
+                                if (action == 'add') {
+                                  title = 'Pengajuan Tambah Kategori';
+                                } else if (action == 'edit') {
+                                  title = 'Pengajuan Edit Kategori "$categoryName"';
+                                } else {
+                                  title = 'Pengajuan Hapus Kategori "$categoryName"';
+                                }
+
+                                return buildRequestCard(
+                                  title: title,
+                                  subtitle: 'Nama: $name',
+                                  status: status,
+                                  onApprove: () => updateStatus(
+                                    endpoint: 'category-requests',
+                                    id: req['id'],
+                                    status: 'approve',
+                                    onSuccess: fetchCategoryRequests,
+                                    method: 'POST',
+                                  ),
+                                  onReject: () => updateStatus(
+                                    endpoint: 'category-requests',
+                                    id: req['id'],
+                                    status: 'reject',
+                                    onSuccess: fetchCategoryRequests,
+                                    method: 'POST',
+                                  ),
+                                );
+                              },
+                            ),
+                  isLoadingSubcategory
+                      ? const Center(child: CircularProgressIndicator())
+                      : subcategoryRequests.isEmpty
+                          ? const Center(child: Text("Tidak ada pengajuan subkategori."))
+                          : ListView.builder(
+                              itemCount: subcategoryRequests.length,
+                              itemBuilder: (context, index) {
+                                final req = subcategoryRequests[index];
+                                final action = req['action'];
+                                final categoryName = req['category']?['name'] ?? '-';
+                                final subName = req['name'] ?? '-';
+                                final status = req['status'] ?? '-';
+
+                                String title;
+                                if (action == 'add') {
+                                  title = 'Pengajuan Tambah Subkategori ke "$categoryName"';
+                                } else if (action == 'edit') {
+                                  title = 'Pengajuan Edit Subkategori "$subName" di "$categoryName"';
+                                } else {
+                                  title = 'Pengajuan Hapus Subkategori "$subName" dari "$categoryName"';
+                                }
+
+                                return buildRequestCard(
+                                  title: title,
+                                  subtitle: 'Nama Subkategori: $subName',
+                                  status: status,
+                                  onApprove: () => updateStatus(
+                                    endpoint: 'subcategory-requests',
+                                    id: req['id'],
+                                    status: 'approve',
+                                    onSuccess: fetchSubcategoryRequests,
+                                    method: 'PUT',
+                                  ),
+                                  onReject: () => updateStatus(
+                                    endpoint: 'subcategory-requests',
+                                    id: req['id'],
+                                    status: 'reject',
+                                    onSuccess: fetchSubcategoryRequests,
+                                    method: 'PUT',
+                                  ),
+                                );
+                              },
+                            ),
                 ],
               ),
             ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                isLoadingCategory
-                    ? const Center(child: CircularProgressIndicator())
-                    : categoryRequests.isEmpty
-                        ? const Center(child: Text("Tidak ada pengajuan kategori."))
-                        : ListView.builder(
-                          itemCount: categoryRequests.length,
-                          itemBuilder: (context, index) {
-                            final req = categoryRequests[index];
-                            final action = req['action'];
-                            final name = req['name'] ?? '-';
-                            final status = req['status'] ?? '-';
-                            final categoryName = req['category']?['name'] ?? '-';
-
-                            String title;
-                            if (action == 'add') {
-                              title = 'Pengajuan Tambah Kategori';
-                            } else if (action == 'edit') {
-                              title = 'Pengajuan Edit Kategori "$categoryName"';
-                            } else {
-                              title = 'Pengajuan Hapus Kategori "$categoryName"';
-                            }
-
-                            return buildRequestCard(
-                              title: title,
-                              subtitle: 'Nama: $name',
-                              status: status,
-                              onApprove: () => updateStatus(
-                                endpoint: 'category-requests',
-                                id: req['id'],
-                                status: 'approve',
-                                onSuccess: fetchCategoryRequests,
-                                method: 'POST', // ← Tambahkan ini
-                              ),
-                              onReject: () => updateStatus(
-                                endpoint: 'category-requests',
-                                id: req['id'],
-                                status: 'reject',
-                                onSuccess: fetchCategoryRequests,
-                                method: 'POST', // ← Tambahkan ini juga
-                              ),
-                            );
-                          },
-                        ),
-                isLoadingSubcategory
-                    ? const Center(child: CircularProgressIndicator())
-                    : subcategoryRequests.isEmpty
-                        ? const Center(child: Text("Tidak ada pengajuan subkategori."))
-                        : ListView.builder(
-                            itemCount: subcategoryRequests.length,
-                            itemBuilder: (context, index) {
-                              final req = subcategoryRequests[index];
-                              print('REQ: ${json.encode(req)}');
-                              final action = req['action'];
-                              final categoryName = req['category']?['name'] ?? '-';
-                              final subName = req['name'] ?? '-';
-                              final status = req['status'] ?? '-';
-
-                              String title;
-                              if (action == 'add') {
-                                title = 'Pengajuan Tambah Subkategori ke "$categoryName"';
-                              } else if (action == 'edit') {
-                                title = 'Pengajuan Edit Subkategori "$subName" di "$categoryName"';
-                              } else {
-                                title = 'Pengajuan Hapus Subkategori "$subName" dari "$categoryName"';
-                              }
-
-                              return buildRequestCard(
-                                title: title,
-                                subtitle: 'Nama Subkategori: $subName',
-                                status: status,
-                                onApprove: () => updateStatus(
-                                  endpoint: 'subcategory-requests',
-                                  id: req['id'],
-                                  status: 'approve',
-                                  onSuccess: fetchSubcategoryRequests,
-                                  method: 'PUT',
-                                ),
-                                onReject: () => updateStatus(
-                                  endpoint: 'subcategory-requests',
-                                  id: req['id'],
-                                  status: 'reject',
-                                  onSuccess: fetchSubcategoryRequests,
-                                  method: 'PUT',
-                                ),
-                              );
-                            },
-                          ),
-              ],
-            ),
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 }

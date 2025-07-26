@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
-class StokBarangPage extends StatelessWidget {
+class StokBarangPage extends StatefulWidget {
   final List items;
   final bool isLoading;
   final String? selectedCategory;
@@ -32,151 +32,168 @@ class StokBarangPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<StokBarangPage> createState() => _StokBarangPageState();
+}
+
+class _StokBarangPageState extends State<StokBarangPage> {
+  @override
   Widget build(BuildContext context) {
-    List filteredItems = items.where((item) {
-      final matchesCategory = selectedCategory == null || item['category']?['name'] == selectedCategory;
-      final matchesSubCategory = selectedSubCategoryName == null || item['sub_category']?['name'] == selectedSubCategoryName;
-      final matchesSearch = searchQuery.isEmpty || item['name'].toLowerCase().contains(searchQuery.toLowerCase());
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
+    List filteredItems = widget.items.where((item) {
+      final matchesCategory =
+          widget.selectedCategory == null || item['category']?['name'] == widget.selectedCategory;
+      final matchesSubCategory = widget.selectedSubCategoryName == null ||
+          item['sub_category']?['name'] == widget.selectedSubCategoryName;
+      final matchesSearch =
+          widget.searchQuery.isEmpty || item['name'].toLowerCase().contains(widget.searchQuery.toLowerCase());
       return matchesCategory && matchesSubCategory && matchesSearch;
     }).toList();
 
-    // 🔁 Urutkan berdasarkan tanggal mutasi terakhir (descending)
     filteredItems.sort((a, b) {
       final aReqs = a['stock_requests'] as List<dynamic>? ?? [];
       final bReqs = b['stock_requests'] as List<dynamic>? ?? [];
 
       final aLatest = aReqs.isEmpty
           ? DateTime.fromMillisecondsSinceEpoch(0)
-          : DateTime.tryParse((aReqs..sort((x, y) => DateTime.parse(y['created_at']).compareTo(DateTime.parse(x['created_at'])))).first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+          : DateTime.tryParse((aReqs..sort((x, y) => DateTime.parse(y['created_at'])
+                  .compareTo(DateTime.parse(x['created_at']))))
+              .first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
 
       final bLatest = bReqs.isEmpty
           ? DateTime.fromMillisecondsSinceEpoch(0)
-          : DateTime.tryParse((bReqs..sort((x, y) => DateTime.parse(y['created_at']).compareTo(DateTime.parse(x['created_at'])))).first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+          : DateTime.tryParse((bReqs..sort((x, y) => DateTime.parse(y['created_at'])
+                  .compareTo(DateTime.parse(x['created_at']))))
+              .first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
 
       return bLatest.compareTo(aLatest);
     });
 
     return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: isLoading
+      onRefresh: widget.onRefresh,
+      child: widget.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('📊 Data Stok Barang',
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo)),
-                        const SizedBox(height: 4),
-                        Text("Total ${items.length} item • Update realtime", style: const TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                ),
-                Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 1,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isWide = constraints.maxWidth > 800;
-
-                        return Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: [
-                            SizedBox(
-                              width: isWide ? 300 : double.infinity,
-                              child: DropdownButtonFormField<String>(
-                                decoration: const InputDecoration(
-                                  labelText: "Kategori",
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.category_outlined),
-                                ),
-                                value: selectedCategory,
-                                items: categories
-                                    .map((cat) => DropdownMenuItem<String>(
-                                          value: cat['name'] as String,
-                                          child: Text(
-                                            cat['name'] as String,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                          ),
-                                        ))
-                                    .toList(),
-                                onChanged: (value) {
-                                  onFilterChanged(value, null, null, searchQuery);
-                                  onFetchSubCategories(value!);
-                                },
-                              ),
-                            ),
-                            SizedBox(
-                              width: isWide ? 300 : double.infinity,
-                              child: DropdownButtonFormField<String>(
-                                decoration: const InputDecoration(
-                                  labelText: "Sub Kategori",
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.subdirectory_arrow_right_outlined),
-                                ),
-                                value: selectedSubCategoryName,
-                                items: subCategories
-                                    .map((sub) => DropdownMenuItem<String>(
-                                          value: sub['name'] as String,
-                                          child: Text(
-                                            sub['name'] as String,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                          ),
-                                        ))
-                                    .toList(),
-                                onChanged: (value) => onFilterChanged(
-                                    selectedCategory, value, selectedJenis, searchQuery),
-                              ),
-                            ),
-                            SizedBox(
-                              width: isWide ? 250 : double.infinity,
-                              child: TextField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Cari nama barang...',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.search),
-                                ),
-                                onChanged: (value) => onFilterChanged(
-                                    selectedCategory, selectedSubCategoryName, selectedJenis, value),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 48,
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.refresh),
-                                label: const Text("Reset Filter"),
-                                onPressed: () => onFilterChanged(null, null, null, ''),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.indigo,
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
+                _buildHeader(),
+                _buildFilter(context),
                 Text("Menampilkan ${filteredItems.length} hasil", style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 ...filteredItems.map((item) => buildItemCard(context, item)).toList(),
               ],
             ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('📊 Data Stok Barang',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo)),
+            const SizedBox(height: 4),
+            Text("Total ${widget.items.length} item • Update realtime", style: const TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilter(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 1,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 800;
+
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                SizedBox(
+                  width: isWide ? 300 : double.infinity,
+                  child: DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: "Kategori",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.category_outlined),
+                    ),
+                    value: widget.selectedCategory,
+                    items: widget.categories
+                        .map((cat) => DropdownMenuItem<String>(
+                              value: cat['name'] as String,
+                              child: Text(cat['name'] as String,
+                                  overflow: TextOverflow.ellipsis, maxLines: 1),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      widget.onFilterChanged(value, null, null, widget.searchQuery);
+                      widget.onFetchSubCategories(value!);
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: isWide ? 300 : double.infinity,
+                  child: DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: "Sub Kategori",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.subdirectory_arrow_right_outlined),
+                    ),
+                    value: widget.selectedSubCategoryName,
+                    items: widget.subCategories
+                        .map((sub) => DropdownMenuItem<String>(
+                              value: sub['name'] as String,
+                              child: Text(sub['name'] as String,
+                                  overflow: TextOverflow.ellipsis, maxLines: 1),
+                            ))
+                        .toList(),
+                    onChanged: (value) => widget.onFilterChanged(
+                        widget.selectedCategory, value, widget.selectedJenis, widget.searchQuery),
+                  ),
+                ),
+                SizedBox(
+                  width: isWide ? 250 : double.infinity,
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Cari nama barang...',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (value) => widget.onFilterChanged(
+                        widget.selectedCategory, widget.selectedSubCategoryName, widget.selectedJenis, value),
+                  ),
+                ),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Reset Filter"),
+                    onPressed: () => widget.onFilterChanged(null, null, null, ''),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 

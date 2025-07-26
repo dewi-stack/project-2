@@ -166,7 +166,7 @@ class _RiwayatMasukApproverPageState extends State<RiwayatMasukApproverPage> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: fetchPendingStockRequests,
-      child: isLoading
+        child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : stockRequests.isEmpty
               ? const Center(

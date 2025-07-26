@@ -200,40 +200,6 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
     }
   }
 
-  Future<bool> _onWillPop() async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Keluar Aplikasi'),
-        content: const Text('Apakah Anda yakin ingin keluar dan kembali ke halaman login?'),
-        actions: [
-          TextButton(
-            child: const Text('Batal'),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Ya, Kembali ke Login',
-              style: TextStyle(color: Colors.white), // 👈 warna teks putih
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLogout == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      if (!mounted) return false;
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
-      return false; // Jangan keluar dari app langsung, cukup arahkan ke login
-    }
-
-    return false;
-  }
-
    Future<void> fetchCategoryRequests() async {
     setState(() => isLoadingCategoryReq = true);
     final h = await getHeaders();
@@ -302,50 +268,54 @@ class _DashboardApproverPageState extends State<DashboardApproverPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold(
-      appBar: AppBar(
-        titleSpacing: 0,
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        title: Row(
-          children: [
-            const SizedBox(width: 8),
-            Image.asset(
-              'assets/images/pt_agro_jaya.png',
-              height: 32,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'SAJI',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+    return WillPopScope(
+      onWillPop: () async {
+        // Jika sedang tidak di halaman utama (misal index 0), kembali ke halaman utama
+        if (_selectedIndex != 0) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+          return false; // Jangan keluar aplikasi
+        }
+        return true; // Kalau sudah di index 0, izinkan keluar aplikasi
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: 0,
+          backgroundColor: Colors.indigo,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          title: Row(
+            children: [
+              const SizedBox(width: 8),
+              Image.asset(
+                'assets/images/pt_agro_jaya.png',
+                height: 32,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'SAJI',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            Tooltip(
+              message: "Logout",
+              child: IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: logout,
               ),
             ),
           ],
         ),
-        actions: [
-          Tooltip(
-            message: "Logout",
-            child: IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: logout,
-            ),
-          ),
-        ],
+        drawer: buildDrawer(),
+        body: getPages()[_selectedIndex],
       ),
-      drawer: buildDrawer(),
-      body: getPages()[_selectedIndex],
     );
-
-    // 💡 Hanya pasang WillPopScope jika bukan di Web
-    return kIsWeb
-        ? scaffold
-        : WillPopScope(
-            onWillPop: _onWillPop,
-            child: scaffold,
-          );
   }
 
   Widget buildDrawer() {

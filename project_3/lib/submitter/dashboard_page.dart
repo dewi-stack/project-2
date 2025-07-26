@@ -229,44 +229,54 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-  final scaffold = Scaffold(
-    appBar: AppBar(
-        titleSpacing: 0,
-        backgroundColor: Colors.indigoAccent,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        title: Row(
-          children: [
-            const SizedBox(width: 8),
-            Image.asset(
-              'assets/images/pt_agro_jaya.png',
-              height: 32,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'SAJI',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+    return WillPopScope(
+      onWillPop: () async {
+        // Jika sedang tidak di halaman utama (misal index 0), kembali ke halaman utama
+        if (_selectedIndex != 0) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+          return false; // Jangan keluar aplikasi
+        }
+        return true; // Kalau sudah di index 0, izinkan keluar aplikasi
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: 0,
+          backgroundColor: Colors.indigoAccent,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          title: Row(
+            children: [
+              const SizedBox(width: 8),
+              Image.asset(
+                'assets/images/pt_agro_jaya.png',
+                height: 32,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'SAJI',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            Tooltip(
+              message: "Logout",
+              child: IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: logout,
               ),
             ),
           ],
         ),
-        actions: [
-          Tooltip(
-            message: "Logout",
-            child: IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: logout,
-            ),
-          ),
-        ],
+        drawer: buildDrawer(),
+        body: getPages()[_selectedIndex],
       ),
-      drawer: buildDrawer(),
-      body: getPages()[_selectedIndex],
     );
-    
-    return scaffold;
   }
 
   Widget buildDrawer() {

@@ -96,148 +96,148 @@ class _RiwayatKeluarPageState extends State<RiwayatKeluarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : stockRequests.isEmpty
-              ? const Center(child: Text("Belum ada pengajuan pengeluaran barang."))
-              : RefreshIndicator(
-                  onRefresh: fetchData,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: stockRequests.length,
-                    itemBuilder: (context, index) {
-                      final req = stockRequests[index];
-                      final item = req['item'] ?? {};
-                      final itemName = item['name'] ?? '-';
-                      final sku = item['sku'] ?? '-';
-                      final location = item['location'] ?? '-';
-                      final quantity = req['quantity'] ?? 0;
-                      final createdAt = req['created_at']?.toString().substring(0, 10) ?? '-';
-                      final description = req['description'] ?? '-';
-                      final status = req['status'] ?? '-';
-                      final unit = item['unit'] ?? '-';
+            ? const Center(child: CircularProgressIndicator())
+            : stockRequests.isEmpty
+                ? const Center(child: Text("Belum ada pengajuan pengeluaran barang."))
+                : RefreshIndicator(
+                    onRefresh: fetchData,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: stockRequests.length,
+                      itemBuilder: (context, index) {
+                        final req = stockRequests[index];
+                        final item = req['item'] ?? {};
+                        final itemName = item['name'] ?? '-';
+                        final sku = item['sku'] ?? '-';
+                        final location = item['location'] ?? '-';
+                        final quantity = req['quantity'] ?? 0;
+                        final createdAt = req['created_at']?.toString().substring(0, 10) ?? '-';
+                        final description = req['description'] ?? '-';
+                        final status = req['status'] ?? '-';
+                        final unit = item['unit'] ?? '-';
 
-                      Color statusColor;
-                      IconData statusIcon;
-                      String statusText;
+                        Color statusColor;
+                        IconData statusIcon;
+                        String statusText;
 
-                      switch (status) {
-                        case 'approved':
-                          statusColor = Colors.green;
-                          statusIcon = Icons.check_circle_outline;
-                          statusText = 'Disetujui';
-                          break;
-                        case 'rejected':
-                          statusColor = Colors.red;
-                          statusIcon = Icons.cancel_outlined;
-                          statusText = 'Ditolak';
-                          break;
-                        default:
-                          statusColor = Colors.orange;
-                          statusIcon = Icons.hourglass_top;
-                          statusText = 'Menunggu Persetujuan';
-                      }
+                        switch (status) {
+                          case 'approved':
+                            statusColor = Colors.green;
+                            statusIcon = Icons.check_circle_outline;
+                            statusText = 'Disetujui';
+                            break;
+                          case 'rejected':
+                            statusColor = Colors.red;
+                            statusIcon = Icons.cancel_outlined;
+                            statusText = 'Ditolak';
+                            break;
+                          default:
+                            statusColor = Colors.orange;
+                            statusIcon = Icons.hourglass_top;
+                            statusText = 'Menunggu Persetujuan';
+                        }
 
-                      return Card(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.inventory_2, color: Colors.indigo),
-                                  const SizedBox(width: 8),
+                        return Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.inventory_2, color: Colors.indigo),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        itemName,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text("Kode Barang: $sku", style: const TextStyle(color: Colors.grey)),
+                                const SizedBox(height: 8),
+
+                                Row(children: [
+                                  const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                  const SizedBox(width: 6),
+                                  Text("Jumlah Keluar: $quantity $unit",
+                                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                ]),
+
+                                const SizedBox(height: 6),
+                                Row(children: [
+                                  const Icon(Icons.location_on, color: Colors.deepOrange),
+                                  const SizedBox(width: 6),
+                                  Text("Lokasi: $location", style: const TextStyle(color: Colors.black54)),
+                                ]),
+
+                                const SizedBox(height: 6),
+                                Row(children: [
+                                  const Icon(Icons.calendar_month, color: Colors.teal),
+                                  const SizedBox(width: 6),
+                                  Text("Tanggal: $createdAt", style: const TextStyle(color: Colors.black54)),
+                                ]),
+
+                                const SizedBox(height: 6),
+                                Row(children: [
+                                  const Icon(Icons.notes, color: Colors.deepPurple),
+                                  const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
-                                      itemName,
+                                      "Keterangan: $description",
                                       style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
+                                        fontStyle: FontStyle.italic,
+                                        color: Colors.deepPurple,
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text("Kode Barang: $sku", style: const TextStyle(color: Colors.grey)),
-                              const SizedBox(height: 8),
+                                ]),
 
-                              Row(children: [
-                                const Icon(Icons.remove_circle_outline, color: Colors.red),
-                                const SizedBox(width: 6),
-                                Text("Jumlah Keluar: $quantity $unit",
-                                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                              ]),
-
-                              const SizedBox(height: 6),
-                              Row(children: [
-                                const Icon(Icons.location_on, color: Colors.deepOrange),
-                                const SizedBox(width: 6),
-                                Text("Lokasi: $location", style: const TextStyle(color: Colors.black54)),
-                              ]),
-
-                              const SizedBox(height: 6),
-                              Row(children: [
-                                const Icon(Icons.calendar_month, color: Colors.teal),
-                                const SizedBox(width: 6),
-                                Text("Tanggal: $createdAt", style: const TextStyle(color: Colors.black54)),
-                              ]),
-
-                              const SizedBox(height: 6),
-                              Row(children: [
-                                const Icon(Icons.notes, color: Colors.deepPurple),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    "Keterangan: $description",
-                                    style: const TextStyle(
-                                      fontStyle: FontStyle.italic,
-                                      color: Colors.deepPurple,
+                                const Divider(height: 20, thickness: 1),
+                                Row(children: [
+                                  Icon(statusIcon, color: statusColor),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    statusText,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: statusColor,
                                     ),
                                   ),
-                                ),
-                              ]),
-
-                              const Divider(height: 20, thickness: 1),
-                              Row(children: [
-                                Icon(statusIcon, color: statusColor),
-                                const SizedBox(width: 6),
-                                Text(
-                                  statusText,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: statusColor,
-                                  ),
-                                ),
-                              ]),
-                            ],
+                                ]),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.indigoAccent,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.remove),
-        label: const Text("Keluar Barang"),
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ScanBarcodeKeluarPage(),
-            ),
-          );
-          if (result == true) {
-            await fetchData();
-          }
-        },
-      ),
-    );
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: Colors.indigoAccent,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.remove),
+          label: const Text("Keluar Barang"),
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ScanBarcodeKeluarPage(),
+              ),
+            );
+            if (result == true) {
+              await fetchData();
+            }
+          },
+        ),
+      );
   }
 }

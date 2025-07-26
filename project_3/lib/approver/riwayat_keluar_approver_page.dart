@@ -168,7 +168,7 @@ class _RiwayatKeluarApproverPageState extends State<RiwayatKeluarApproverPage> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: fetchRequests,
-      child: isLoading
+        child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : requests.isEmpty
               ? const Center(

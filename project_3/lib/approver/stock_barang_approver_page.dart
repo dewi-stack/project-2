@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-class StokBarangApproverPage extends StatelessWidget {
+class StokBarangApproverPage extends StatefulWidget {
   final List items;
   final bool isLoading;
   final String? selectedCategory;
@@ -31,54 +28,24 @@ class StokBarangApproverPage extends StatelessWidget {
     required this.onFetchSubCategories,
   });
 
-  Future<void> updateStockRequestStatus(BuildContext context, int requestId, String newStatus) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+  @override
+  State<StokBarangApproverPage> createState() => _StokBarangApproverPageState();
+}
 
-    if (token == null) {
-      await prefs.clear();
-      if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
-      return;
-    }
-
-    final response = await http.put(
-      Uri.parse('https://saji.my.id/api/stock-requests/$requestId/approve'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'status': newStatus}),
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Status berhasil diperbarui menjadi $newStatus')),
-      );
-      onRefresh();
-    } else {
-      try {
-        final resBody = json.decode(response.body);
-        final shouldLogout = resBody['forced_logout'] == true || resBody['message'] == 'Unauthenticated.';
-        if (response.statusCode == 401 || response.statusCode == 403 || shouldLogout) {
-          await prefs.clear();
-          if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
-          return;
-        }
-      } catch (_) {}
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal memperbarui status.')),
-      );
-    }
-  }
-
+class _StokBarangApproverPageState extends State<StokBarangApproverPage> {
   @override
   Widget build(BuildContext context) {
-    List filteredItems = items.where((item) {
-      final matchesCategory = selectedCategory == null || item['category']?['name'] == selectedCategory;
-      final matchesSubCategory = selectedSubCategoryName == null || item['sub_category']?['name'] == selectedSubCategoryName;
-      final matchesSearch = searchQuery.isEmpty || item['name'].toLowerCase().contains(searchQuery.toLowerCase());
+    return _buildPage(context);
+  }
+
+  Widget _buildPage(BuildContext context) {
+    List filteredItems = widget.items.where((item) {
+      final matchesCategory =
+          widget.selectedCategory == null || item['category']?['name'] == widget.selectedCategory;
+      final matchesSubCategory = widget.selectedSubCategoryName == null ||
+          item['sub_category']?['name'] == widget.selectedSubCategoryName;
+      final matchesSearch =
+          widget.searchQuery.isEmpty || item['name'].toLowerCase().contains(widget.searchQuery.toLowerCase());
       return matchesCategory && matchesSubCategory && matchesSearch;
     }).toList();
 
@@ -88,18 +55,22 @@ class StokBarangApproverPage extends StatelessWidget {
 
       final aLatest = aReqs.isEmpty
           ? DateTime.fromMillisecondsSinceEpoch(0)
-          : DateTime.tryParse((aReqs..sort((x, y) => DateTime.parse(y['created_at']).compareTo(DateTime.parse(x['created_at'])))).first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+          : DateTime.tryParse((aReqs..sort((x, y) => DateTime.parse(y['created_at'])
+                  .compareTo(DateTime.parse(x['created_at']))))
+              .first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
 
       final bLatest = bReqs.isEmpty
           ? DateTime.fromMillisecondsSinceEpoch(0)
-          : DateTime.tryParse((bReqs..sort((x, y) => DateTime.parse(y['created_at']).compareTo(DateTime.parse(x['created_at'])))).first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+          : DateTime.tryParse((bReqs..sort((x, y) => DateTime.parse(y['created_at'])
+                  .compareTo(DateTime.parse(x['created_at']))))
+              .first['created_at']) ?? DateTime.fromMillisecondsSinceEpoch(0);
 
       return bLatest.compareTo(aLatest);
     });
 
     return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: isLoading
+      onRefresh: widget.onRefresh,
+      child: widget.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
@@ -116,7 +87,8 @@ class StokBarangApproverPage extends StatelessWidget {
                         const Text('📊 Data Stok Barang',
                             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo)),
                         const SizedBox(height: 4),
-                        Text("Total ${items.length} item • Update realtime", style: const TextStyle(color: Colors.grey)),
+                        Text("Total ${widget.items.length} item • Update realtime",
+                            style: const TextStyle(color: Colors.grey)),
                       ],
                     ),
                   ),
@@ -143,8 +115,8 @@ class StokBarangApproverPage extends StatelessWidget {
                                   border: OutlineInputBorder(),
                                   prefixIcon: Icon(Icons.category_outlined),
                                 ),
-                                value: selectedCategory,
-                                items: categories
+                                value: widget.selectedCategory,
+                                items: widget.categories
                                     .map((cat) => DropdownMenuItem<String>(
                                           value: cat['name'] as String,
                                           child: Text(
@@ -155,8 +127,8 @@ class StokBarangApproverPage extends StatelessWidget {
                                         ))
                                     .toList(),
                                 onChanged: (value) {
-                                  onFilterChanged(value, null, null, searchQuery);
-                                  onFetchSubCategories(value!);
+                                  widget.onFilterChanged(value, null, null, widget.searchQuery);
+                                  widget.onFetchSubCategories(value!);
                                 },
                               ),
                             ),
@@ -168,8 +140,8 @@ class StokBarangApproverPage extends StatelessWidget {
                                   border: OutlineInputBorder(),
                                   prefixIcon: Icon(Icons.subdirectory_arrow_right_outlined),
                                 ),
-                                value: selectedSubCategoryName,
-                                items: subCategories
+                                value: widget.selectedSubCategoryName,
+                                items: widget.subCategories
                                     .map((sub) => DropdownMenuItem<String>(
                                           value: sub['name'] as String,
                                           child: Text(
@@ -179,8 +151,8 @@ class StokBarangApproverPage extends StatelessWidget {
                                           ),
                                         ))
                                     .toList(),
-                                onChanged: (value) => onFilterChanged(
-                                    selectedCategory, value, selectedJenis, searchQuery),
+                                onChanged: (value) => widget.onFilterChanged(
+                                    widget.selectedCategory, value, widget.selectedJenis, widget.searchQuery),
                               ),
                             ),
                             SizedBox(
@@ -191,8 +163,8 @@ class StokBarangApproverPage extends StatelessWidget {
                                   border: OutlineInputBorder(),
                                   prefixIcon: Icon(Icons.search),
                                 ),
-                                onChanged: (value) => onFilterChanged(
-                                    selectedCategory, selectedSubCategoryName, selectedJenis, value),
+                                onChanged: (value) => widget.onFilterChanged(
+                                    widget.selectedCategory, widget.selectedSubCategoryName, widget.selectedJenis, value),
                               ),
                             ),
                             SizedBox(
@@ -200,7 +172,7 @@ class StokBarangApproverPage extends StatelessWidget {
                               child: ElevatedButton.icon(
                                 icon: const Icon(Icons.refresh),
                                 label: const Text("Reset Filter"),
-                                onPressed: () => onFilterChanged(null, null, null, ''),
+                                onPressed: () => widget.onFilterChanged(null, null, null, ''),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.indigo,
                                   foregroundColor: Colors.white,

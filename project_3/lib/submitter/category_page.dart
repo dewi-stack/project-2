@@ -439,13 +439,13 @@ class _CategoryPageState extends State<CategoryPage> {
                   const SnackBar(
                     content: Text('Pilih kategori terlebih dahulu.'),
                     backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      );
   }
 }
