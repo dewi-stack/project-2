@@ -234,7 +234,7 @@ class _ExportPageState extends State<ExportPage> {
 
       final headers = [
         'No', 'Kode Barang', 'Kategori', 'Sub Kategori', 'Nama Barang',
-        'Jumlah Stok', 'Satuan', 'Lokasi', 'Keterangan', 'Status', 'User'
+        'Jumlah Stok', 'Satuan', 'Lokasi', 'Keterangan', 'Status', 'User', 'Tanggal Download'
       ];
 
       for (int i = 0; i < headers.length; i++) {
@@ -277,6 +277,7 @@ class _ExportPageState extends State<ExportPage> {
         sheet.getRangeByIndex(row, 9).setText(description);
         sheet.getRangeByIndex(row, 10).setText(statusText);
         sheet.getRangeByIndex(row, 11).setText(userLabel);
+        sheet.getRangeByIndex(row, 12).setText(DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()));
         row++;
       }
 
@@ -337,7 +338,7 @@ class _ExportPageState extends State<ExportPage> {
       final headers = [
         'No', 'Kode Barang', 'Kategori', 'Sub Kategori', 'Nama Barang',
         'Tanggal Mutasi', 'Mutasi Masuk', 'Mutasi Keluar', 'Satuan',
-        'Lokasi', 'Keterangan', 'Status', 'User'
+        'Lokasi', 'Keterangan', 'Status', 'User', 'Tanggal Download'
       ];
 
       for (int i = 0; i < headers.length; i++) {
@@ -387,6 +388,7 @@ class _ExportPageState extends State<ExportPage> {
         sheet.getRangeByIndex(row, 11).setText(description);
         sheet.getRangeByIndex(row, 12).setText(statusText);
         sheet.getRangeByIndex(row, 13).setText(userLabel);
+        sheet.getRangeByIndex(row, 14).setText(DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()));
         row++;
       }
 

@@ -45,7 +45,7 @@ class ExportController extends Controller
         $spreadsheet = new Spreadsheet();
         $spreadsheet->removeSheetByIndex(0); // Hapus default sheet
 
-        $headers = ['No', 'Kode Barang', 'Kategori', 'Sub Kategori', 'Nama Barang', 'Jumlah Stok', 'Satuan', 'Lokasi', 'Keterangan', 'Status', 'User'];
+        $headers = ['No', 'Kode Barang', 'Kategori', 'Sub Kategori', 'Nama Barang', 'Jumlah Stok', 'Satuan', 'Lokasi', 'Keterangan', 'Status', 'User', 'Tanggal Download'];
 
         foreach ($grouped as $kategoriId => $itemsInKategori) {
             $firstItem = $itemsInKategori->first();
@@ -107,7 +107,8 @@ class ExportController extends Controller
                     $item->location,
                     $description,
                     $status,
-                    $user
+                    $user,
+                    now()->format('d-m-Y H:i:s')
                 ];
 
                 foreach ($data as $i => $val) {
@@ -156,8 +157,8 @@ class ExportController extends Controller
             ->where('status', 'approved')
             ->whereBetween('created_at', [$startDate, $endDate])
 
-    ->orderBy('created_at')
-            ->get();
+            ->orderBy('created_at')
+                ->get();
 
         if ($requests->isEmpty()) {
             return response()->json(['error' => 'Tidak ada data mutasi stok yang disetujui.'], 400);
@@ -182,7 +183,7 @@ class ExportController extends Controller
         $headers = [
             'No', 'Kode Barang', 'Kategori', 'Sub Kategori', 'Nama Barang',
             'Tanggal Mutasi', 'Mutasi Masuk', 'Mutasi Keluar', 'Satuan',
-            'Lokasi', 'Keterangan', 'Status', 'User'
+            'Lokasi', 'Keterangan', 'Status', 'User', 'Tanggal Download'
         ];
 
         $headerStyle = [
@@ -231,7 +232,8 @@ class ExportController extends Controller
                     $req->location ?? $item->location ?? '-',
                     $req->description ?? '-',
                     'Disetujui',
-                    $userLabel
+                    $userLabel,
+                    now()->format('d-m-Y H:i:s')
                 ];
 
                 foreach ($data as $i => $val) {
