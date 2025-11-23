@@ -57,9 +57,6 @@ project_3/
 │── frontend/ # Flutter Mobile App
 └── README.md
 
-yaml
-Salin kode
-
 ---
 
 # 🚀 Instalasi Proyek
@@ -86,11 +83,11 @@ php artisan key:generate
 php artisan serve
 ```
 
-```bash
-2️⃣ Instalasi Frontend (Flutter)
+
+## 2️⃣ Instalasi Frontend (Flutter)
 Masuk ke folder aplikasi mobile:
 
-Salin kode
+```bash
 cd frontend
 flutter pub get
 Jalankan aplikasi:
