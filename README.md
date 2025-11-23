@@ -63,31 +63,27 @@ project_3/
 
 ## 1️⃣ Instalasi Backend (Laravel)
 
-Masuk ke folder backend:
 ```bash
+Masuk ke folder backend:
 cd warehouse-api
 composer install
 cp .env.example .env
-Atur database di file .env:
 
-makefile
-Salin kode
+Atur database di file .env:
 DB_DATABASE=db_warehouse
 DB_USERNAME=root
 DB_PASSWORD=
-Generate key & jalankan server:
 
-bash
-Salin kode
+Generate key & jalankan server:
 php artisan key:generate
 php artisan serve
 ```
 
 
 ## 2️⃣ Instalasi Frontend (Flutter)
-Masuk ke folder aplikasi mobile:
 
 ```bash
+Masuk ke folder aplikasi mobile:
 cd frontend
 flutter pub get
 Jalankan aplikasi:
