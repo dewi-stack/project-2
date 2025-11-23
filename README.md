@@ -84,25 +84,23 @@ bash
 Salin kode
 php artisan key:generate
 php artisan serve
+```
+
+```bash
 2️⃣ Instalasi Frontend (Flutter)
 Masuk ke folder aplikasi mobile:
 
-bash
 Salin kode
 cd frontend
 flutter pub get
 Jalankan aplikasi:
 
 Untuk Web:
-
-bash
-Salin kode
 flutter run -d chrome
-Untuk Android:
 
-bash
-Salin kode
+Untuk Android:
 flutter run
+
 🔐 Akun Demo
 🟦 Submitter
 Email: submitter@example.com
@@ -160,8 +158,6 @@ Status otomatis diperbarui
 Dari mobile → Export Posisi Stok
 
 Dari web → Export Stok & Mutasi Barang
+```
 
-📄 Lisensi
-Proyek ini adalah sistem internal PT Agro Jaya Industri dan tidak bersifat open-source.
-
-<p align="center"> Terima kasih telah menggunakan Aplikasi Warehouse! 🙌 </p> ```
+<p align="center"> Terima kasih telah menggunakan Aplikasi Warehouse! 🙌 </p>
