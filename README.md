@@ -1,156 +1,169 @@
 <!-- Banner -->
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:11998e,100:38ef7d&height=160&section=header&text=Aplikasi%20Warehouse%20🏭&fontSize=30&fontColor=fff&animation=fadeIn&fontAlignY=35"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:11998e,100:38ef7d&height=160&section=header&text=Warehouse%20Management%20System%20🏭&fontSize=30&fontColor=fff&animation=fadeIn&fontAlignY=35"/>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Laravel-FF2D20?logo=laravel&logoColor=white"/>
   <img src="https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white"/>
   <img src="https://img.shields.io/badge/MySQL-00758F?logo=mysql&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Status-Maintained-success"/>
+  <img src="https://img.shields.io/badge/Project-Maintained-success"/>
 </p>
 
 ---
 
-# 🏭 Aplikasi Warehouse – PT Agro Jaya Industri
+# 🏭 Warehouse Management System  
+### PT Agro Jaya Industri
 
-**Aplikasi Warehouse** adalah sistem manajemen gudang berbasis **Laravel (Web Dashboard)** dan **Flutter (Aplikasi Mobile)**.  
-Sistem ini digunakan untuk mempermudah pengelolaan stok barang, mutasi barang, dan proses approval.
+The **Warehouse Management System** is a web and mobile-based application built with  
+**Laravel (Web Dashboard & REST API)** and **Flutter (Mobile App)**.
 
----
-
-# 📦 Fitur Utama
-
-## 📱 Aplikasi Mobile (Flutter)
-- Scan barcode atau input SKU manual  
-- Input & update stok barang  
-- Mutasi barang (Masuk/Keluar)  
-- Export Excel langsung dari aplikasi  
-- Sistem login & autentikasi  
-- Tampilan modern, ringan, dan mobile-friendly  
-
-## 💻 Dashboard Web (Laravel)
-- Manajemen barang, kategori, subkategori, dan user  
-- Import & Export Excel (stok & mutasi)  
-- Role-based access (Admin, Approver, Submitter)  
-- Approval mutasi barang  
-- Grafik dan laporan  
+This system is designed to manage **stock items, inbound/outbound mutations, and approval workflows** efficiently, helping warehouse operations become more structured, accurate, and transparent.
 
 ---
 
-# 🧰 Teknologi yang Digunakan
+## 📦 Key Features
 
-| Komponen | Teknologi |
-|---------|-----------|
-| **Frontend Mobile** | Flutter |
-| **Frontend Web** | Laravel Blade + Bootstrap |
-| **Backend API** | Laravel 12 |
+### 📱 Mobile Application (Flutter)
+- Barcode scanning or manual SKU input
+- Stock item input and updates
+- Stock mutation (Inbound / Outbound)
+- Export stock data to Excel
+- User authentication & login
+- Lightweight, modern, and mobile-friendly UI
+
+### 💻 Web Dashboard (Laravel)
+- Item, category, subcategory, and user management
+- Import & export stock and mutation data to Excel
+- Role-based access control:
+  - Admin
+  - Approver
+  - Submitter
+- Stock mutation approval process
+- Stock reports and charts
+
+---
+
+## 🧰 Tech Stack
+
+| Component | Technology |
+|---------|------------|
+| **Mobile Frontend** | Flutter |
+| **Web Frontend** | Laravel Blade + Bootstrap |
+| **Backend API** | Laravel 12 (REST API) |
 | **Database** | MySQL / MariaDB |
-| **Library Pendukung** | maatwebsite/excel, http, dio, provider |
+| **Supporting Libraries** | maatwebsite/excel, http, dio, provider |
 
 ---
 
-# 📂 Struktur Project
+## 📂 Project Structure
 
 project_3/
-│── warehouse-api/ # Laravel API + Dashboard Web
-│── frontend/ # Flutter Mobile App
+│── warehouse-api/ # Laravel REST API & Web Dashboard
+│── frontend/ # Flutter Mobile Application
 └── README.md
+
 
 ---
 
-# 🚀 Instalasi Proyek
+## 🚀 Installation Guide
 
-## 1️⃣ Instalasi Backend (Laravel)
+### 1️⃣ Backend Setup (Laravel)
 
 ```bash
-Masuk ke folder backend:
 cd warehouse-api
 composer install
 cp .env.example .env
 
-Atur database di file .env:
+Configure database in .env:
 DB_DATABASE=db_warehouse
 DB_USERNAME=root
 DB_PASSWORD=
 
-Generate key & jalankan server:
+Run the application:
 php artisan key:generate
 php artisan serve
 ```
 
 
-## 2️⃣ Instalasi Frontend (Flutter)
+2️⃣ Frontend Setup (Flutter)
 
 ```bash
-Masuk ke folder aplikasi mobile:
 cd frontend
 flutter pub get
-Jalankan aplikasi:
+Run the application:
 
-Untuk Web:
+Web:
 flutter run -d chrome
 
-Untuk Android:
+Android:
 flutter run
 
-🔐 Akun Demo
+🔐 Demo Accounts
 🟦 Submitter
+
 Email: submitter@example.com
 
 Password: password123
-Digunakan untuk:
 
-Input data stok
+Permissions:
 
-Input mutasi
+Input stock data
 
-Melihat status mutasi
+Submit stock mutations
+
+View mutation status
 
 🟩 Approver
+
 Email: approver@example.com
 
 Password: password123
-Digunakan untuk:
 
-Melihat mutasi pending
+Permissions:
 
-Menerima/menolak mutasi
+View pending mutations
 
-Melihat laporan stok
+Approve or reject mutations
 
-📘 Cara Menggunakan Aplikasi
+View stock reports
+
+📘 Application Workflow
 1️⃣ Login
-Submitter → input barang / mutasi
 
-Approver → persetujuan mutasi
+Submitter → stock input & mutation submission
 
-2️⃣ Alur Submitter
+Approver → mutation approval
+
+2️⃣ Submitter Flow
+
 Login
 
-Pilih menu Input Barang / Mutasi Barang
+Select stock input or mutation menu
 
-Scan barcode atau input SKU manual
+Scan barcode or enter SKU manually
 
 Submit data
 
-Tunggu persetujuan Approver
+Wait for approver confirmation
 
-3️⃣ Alur Approver
+3️⃣ Approver Flow
+
 Login
 
-Buka menu Mutasi Pending
+Open pending mutation list
 
-Lihat detail mutasi
+Review mutation details
 
-Klik Accept atau Decline
+Click Accept or Decline
 
-Status otomatis diperbarui
+Status updates automatically
 
-4️⃣ Export Excel
-Dari mobile → Export Posisi Stok
+4️⃣ Excel Export
 
-Dari web → Export Stok & Mutasi Barang
+Mobile App → Export current stock position
+
+Web Dashboard → Export stock & mutation reports
 ```
 
-<p align="center"> Terima kasih telah menggunakan Aplikasi Warehouse! 🙌 </p>
+<p align="center"> Thank you for using the Warehouse Management System 🙌 </p> ```
